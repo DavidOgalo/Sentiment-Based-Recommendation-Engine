@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:17.4
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: se2025
+      POSTGRES_DB: sentimenteng_db
+    volumes:
+      - se_postgresdata:/var/lib/postgresql/data
+    ports:
+      - "4444:5432"
+    restart: always
+
+  web:
+    build: .
+    command: uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "8001:8000"
+    depends_on:
+      - db
+
+volumes:
+  se_postgresdata:
