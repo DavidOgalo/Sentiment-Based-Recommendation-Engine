@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Body
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.models.database import get_db
@@ -31,11 +31,11 @@ class Token(BaseModel):
     role: str
 
 class TokenData(BaseModel):
-    user_id: Optional[int] = None
+    user_id: Optional[str] = None
     role: Optional[str] = None
 
 class UserCreate(BaseModel):
-    email: str
+    email: EmailStr
     password: str
     role: str
     first_name: Optional[str] = None
@@ -48,7 +48,11 @@ class UserResponse(BaseModel):
     first_name: Optional[str]
     last_name: Optional[str]
     created_at: datetime
+    last_login: Optional[datetime]
     is_active: bool
+
+    class Config:
+        from_attributes = True
 
 
 # Helper functions
@@ -102,25 +106,22 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int = payload.get("sub")
+        user_id: str = payload.get("sub")  # Get as string
         role: str = payload.get("role")
 
         if user_id is None:
             raise credentials_exception
 
         token_data = TokenData(user_id=user_id, role=role)
-    except JWTError:
+    except JWTError as e:
+        print(f"JWT Error: {str(e)}")
         raise credentials_exception
     
-    user = await db.execute(select(User).filter(User.user_id == token_data.user_id))
+    user = await db.execute(select(User).filter(User.user_id == int(token_data.user_id)))
     user = user.scalars().first()
 
     if user is None:
         raise credentials_exception
-
-    # Update last login time
-    user.last_login = datetime.utcnow()
-    await db.commit()
 
     return user
 
@@ -224,7 +225,7 @@ async def login_for_access_token(
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.user_id, "role": user.role},
+        data={"sub": str(user.user_id), "role": user.role},
         expires_delta=access_token_expires,
     )
 

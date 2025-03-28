@@ -18,6 +18,10 @@ services:
       - .:/app
     ports:
       - "8001:8000"
+    environment:
+      - SECRET_KEY=s3zcz55589w9
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=1440
     depends_on:
       - db
 
