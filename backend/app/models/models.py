@@ -1,7 +1,7 @@
 # Database ORM models
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, JSON, DateTime, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, JSON, DateTime, Float, CheckConstraint
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from backend.app.models.database import Base
 
 # Users Table
@@ -19,7 +19,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
 
     # Relationships
-    reviews = relationship("Review", back_populates="user")
+    reviews = relationship("Review", back_populates="user", cascade="all, delete-orphan")
     preferences = relationship("UserPreference", back_populates="user")
 
  
@@ -46,7 +46,14 @@ class ServiceProvider(Base):
     # Relationships
     user = relationship("User")
     services = relationship("Service", back_populates="provider")
-    reviews = relationship("Review", back_populates="provider")
+    reviews = relationship(
+        "Review",
+        secondary="services",
+        primaryjoin="ServiceProvider.provider_id == Service.provider_id",
+        secondaryjoin="and_(Service.service_id == Review.service_id, Service.is_active == True)",
+        viewonly=True,
+        back_populates="provider"
+    )
 
 
 # Service Categories Table
@@ -78,6 +85,7 @@ class Service(Base):
     # Relationships
     provider = relationship("ServiceProvider", back_populates="services")
     category = relationship("ServiceCategory")
+    reviews = relationship("Review", back_populates="service", cascade="all, delete-orphan")
 
 
 # Reviews Table
@@ -85,20 +93,28 @@ class Review(Base):
     __tablename__ = "reviews"
 
     review_id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"))
-    provider_id = Column(Integer, ForeignKey("service_providers.provider_id"))
-    service_id = Column(Integer, ForeignKey("services.service_id"))
+    service_id = Column(Integer, ForeignKey("services.service_id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     rating = Column(Integer, nullable=False)
-    review_text = Column(Text)
+    comment = Column(Text, nullable=False)
     sentiment_score = Column(Float)
-    sentiment_magnitude = Column(Float)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    is_verified = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
 
     # Relationships
+    service = relationship("Service", back_populates="reviews")
     user = relationship("User", back_populates="reviews")
-    provider = relationship("ServiceProvider", back_populates="reviews")
-    service = relationship("Service")
+    provider = relationship(
+        "ServiceProvider",
+        secondary="services",
+        primaryjoin="Review.service_id == Service.service_id",
+        secondaryjoin="Service.provider_id == ServiceProvider.provider_id",
+        viewonly=True,
+        back_populates="reviews"
+    )
+
+    __table_args__ = (
+        CheckConstraint('rating >= 1 AND rating <= 5', name='reviews_rating_check'),
+    )
 
 
 # Review Sentiment Details Table
