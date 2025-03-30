@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from backend.app.api import auth, users, providers
+from backend.app.api import auth, users, providers, services
 from dotenv import load_dotenv
 import os
 
@@ -11,3 +11,8 @@ app = FastAPI(title="Sentiment Recommender API")
 app.include_router(auth.router, prefix="/auth", tags=["authentication"])
 app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(providers.router, prefix="/providers", tags=["providers"])
+app.include_router(services.router, prefix="/services", tags=["services"])
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Sentiment Recommender API!"}

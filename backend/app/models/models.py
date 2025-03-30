@@ -68,15 +68,16 @@ class Service(Base):
     service_id = Column(Integer, primary_key=True, index=True)
     provider_id = Column(Integer, ForeignKey("service_providers.provider_id"))
     category_id = Column(Integer, ForeignKey("service_categories.category_id"))
-    name = Column(String(255), nullable=False)
+    name = Column(String, nullable=False)
     description = Column(Text)
     price_range = Column(JSON)
     duration_minutes = Column(Integer)
+    created_at = Column(DateTime, default=datetime.utcnow)
     is_active = Column(Boolean, default=True)
 
     # Relationships
     provider = relationship("ServiceProvider", back_populates="services")
-    category = relationship("ServiceCategory", back_populates="services")
+    category = relationship("ServiceCategory")
 
 
 # Reviews Table
