@@ -60,7 +60,7 @@ class ServiceProvider(Base):
 class ServiceCategory(Base):
     __tablename__ = "service_categories"
 
-    category_id = Column(Integer, primary_key=True, index=True)
+    category_id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     description = Column(Text)
 
@@ -84,7 +84,7 @@ class Service(Base):
 
     # Relationships
     provider = relationship("ServiceProvider", back_populates="services")
-    category = relationship("ServiceCategory")
+    category = relationship("ServiceCategory", back_populates="services")
     reviews = relationship("Review", back_populates="service", cascade="all, delete-orphan")
 
 

@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from backend.app.api import auth, users, providers, services, reviews
+from backend.app.api import auth, users, providers, services, reviews, recommendations
 from dotenv import load_dotenv
 import os
 
@@ -13,6 +13,7 @@ app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(providers.router, prefix="/providers", tags=["providers"])
 app.include_router(services.router, prefix="/services", tags=["services"])
 app.include_router(reviews.router, tags=["reviews"])
+app.include_router(recommendations.router, prefix="/recommendations", tags=["recommendations"])
 
 @app.get("/")
 def read_root():
