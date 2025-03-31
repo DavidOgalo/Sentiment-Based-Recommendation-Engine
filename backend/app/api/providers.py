@@ -3,74 +3,85 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from typing import List, Optional
-from pydantic import BaseModel, EmailStr
+from typing import List, Optional, Dict
+from pydantic import BaseModel, EmailStr, constr
 from datetime import datetime
 from backend.app.models.database import get_db
-from backend.app.models.models import ServiceProvider, User
+from backend.app.models.models import ServiceProvider, User, ServiceCategory
 from backend.app.api.auth import get_current_active_user, get_admin_user
 
 router = APIRouter()
 
 # Pydantic Models
-class ServiceProviderBase(BaseModel):
-    business_name: str
+class ProviderCreate(BaseModel):
+    business_name: constr(max_length=255)
     description: Optional[str] = None
     contact_phone: Optional[str] = None
     address: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
-    business_hours: Optional[dict] = None
-    services_offered: Optional[dict] = None
+    business_hours: Optional[Dict] = None
+    services_offered: Optional[Dict] = None
 
-class ServiceProviderCreate(ServiceProviderBase):
-    pass
-
-class ServiceProviderUpdate(ServiceProviderBase):
-    is_verified: Optional[bool] = None
-
-class ServiceProviderResponse(ServiceProviderBase):
+class ProviderResponse(ProviderCreate):
     provider_id: int
     user_id: int
-    average_rating: float
-    sentiment_score: float
-    total_reviews: int
-    created_at: datetime
-    is_verified: bool
-
+    average_rating: Optional[float] = 0
+    sentiment_score: Optional[float] = 0
+    total_reviews: Optional[int] = 0
+    is_verified: bool = False
+    
     class Config:
-        from_attributes = True
+        orm_mode = True
+
+# Pydantic model for category
+class CategoryCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class CategoryResponse(CategoryCreate):
+    category_id: int
+    
+    class Config:
+        orm_mode = True
 
 # Endpoints
-@router.post("/", response_model=ServiceProviderResponse)
-async def create_service_provider(
-    provider_data: ServiceProviderCreate,
+@router.post("/", response_model=ProviderResponse)
+async def create_provider(
+    provider_data: ProviderCreate,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Create a new service provider profile"""
-    # Check if user already has a provider profile
+    # Check if user is a provider
+    if current_user.role != "provider":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only users with provider role can create provider profiles"
+        )
+    
+    # Check if provider profile already exists
     existing_provider = await db.execute(
         select(ServiceProvider).filter(ServiceProvider.user_id == current_user.user_id)
     )
     if existing_provider.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User already has a service provider profile"
+            detail="Provider profile already exists for this user"
         )
-
+    
+    # Create new provider profile
     new_provider = ServiceProvider(
         user_id=current_user.user_id,
-        **provider_data.dict(),
-        created_at=datetime.utcnow()
+        **provider_data.dict(exclude_unset=True)  # Only include provided fields
     )
-
+    
     db.add(new_provider)
     await db.commit()
     await db.refresh(new_provider)
+    
     return new_provider
 
-@router.get("/", response_model=List[ServiceProviderResponse])
+@router.get("/", response_model=List[ProviderResponse])
 async def list_service_providers(
     skip: int = 0,
     limit: int = 10,
@@ -84,7 +95,7 @@ async def list_service_providers(
     )
     return result.scalars().all()
 
-@router.get("/{provider_id}", response_model=ServiceProviderResponse)
+@router.get("/{provider_id}", response_model=ProviderResponse)
 async def get_service_provider(
     provider_id: int,
     db: AsyncSession = Depends(get_db)
@@ -101,10 +112,10 @@ async def get_service_provider(
         )
     return provider
 
-@router.put("/{provider_id}", response_model=ServiceProviderResponse)
+@router.put("/{provider_id}", response_model=ProviderResponse)
 async def update_service_provider(
     provider_id: int,
-    provider_data: ServiceProviderUpdate,
+    provider_data: ProviderCreate,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -131,7 +142,7 @@ async def update_service_provider(
     await db.refresh(provider)
     return provider
 
-@router.patch("/{provider_id}/verify", response_model=ServiceProviderResponse)
+@router.patch("/{provider_id}/verify", response_model=ProviderResponse)
 async def verify_service_provider(
     provider_id: int,
     data: dict = Body(..., example={"is_verified": True}),
@@ -154,3 +165,22 @@ async def verify_service_provider(
     await db.commit()
     await db.refresh(provider)
     return provider
+
+# Create category endpoint
+@router.post("/categories", response_model=CategoryResponse)
+async def create_category(
+    category: CategoryCreate,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can create categories"
+        )
+    
+    new_category = ServiceCategory(**category.dict())
+    db.add(new_category)
+    await db.commit()
+    await db.refresh(new_category)
+    return new_category

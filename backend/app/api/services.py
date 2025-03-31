@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from typing import List, Optional
-from pydantic import BaseModel
+from typing import List, Optional, Dict
+from pydantic import BaseModel, Field, constr
 from datetime import datetime
 from backend.app.models.database import get_db
 from backend.app.models.models import Service, ServiceProvider, User, ServiceCategory
@@ -18,8 +18,12 @@ class ServiceBase(BaseModel):
     duration_minutes: int
     category_id: int
 
-class ServiceCreate(ServiceBase):
-    pass
+class ServiceCreate(BaseModel):
+    name: constr(max_length=255)
+    description: Optional[str] = None
+    price_range: Dict[str, float]  # {"min": float, "max": float}
+    duration_minutes: int
+    category_id: int
 
 class ServiceUpdate(ServiceBase):
     name: Optional[str] = None
@@ -29,51 +33,61 @@ class ServiceUpdate(ServiceBase):
     category_id: Optional[int] = None
     is_active: Optional[bool] = None
 
-class ServiceResponse(ServiceBase):
+class ServiceResponse(ServiceCreate):
     service_id: int
     provider_id: int
-    created_at: datetime
-    is_active: bool
-
+    is_active: bool = True
+    
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class CategoryCreate(BaseModel):
     name: str
     description: Optional[str] = None
 
 # Endpoints
-@router.post("/{provider_id}/services", response_model=ServiceResponse)
+@router.post("/", response_model=ServiceResponse)
 async def create_service(
-    provider_id: int,
-    service_data: ServiceCreate,
+    service: ServiceCreate,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Create a new service for a provider"""
-    # Check if provider exists and user has permission
-    provider = await db.execute(
-        select(ServiceProvider).filter(
-            ServiceProvider.provider_id == provider_id,
-            ServiceProvider.user_id == current_user.user_id
+    # Check if user is a provider
+    if current_user.role != "provider":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only providers can create services"
         )
+    
+    # Get the provider profile and check verification
+    provider = await db.execute(
+        select(ServiceProvider)
+        .filter(ServiceProvider.user_id == current_user.user_id)
     )
     provider = provider.scalar_one_or_none()
     
     if not provider:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Service provider not found or you don't have permission"
+            detail="Provider profile not found. Please create a provider profile first."
         )
-
+    
+    if not provider.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Provider must be verified before creating services"
+        )
+    
+    # Create new service
     new_service = Service(
-        provider_id=provider_id,
-        **service_data.dict()  # This will only include the fields defined in ServiceCreate
+        provider_id=provider.provider_id,
+        **service.dict()
     )
-
+    
     db.add(new_service)
     await db.commit()
     await db.refresh(new_service)
+    
     return new_service
 
 @router.get("/", response_model=List[ServiceResponse])

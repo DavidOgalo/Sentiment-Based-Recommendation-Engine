@@ -10,6 +10,7 @@ from ..api.auth import get_current_active_user
 from pydantic import BaseModel
 from datetime import datetime, timedelta
 
+# Create router without prefix (prefix is added in main.py)
 router = APIRouter()
 
 # Pydantic models
@@ -36,6 +37,7 @@ async def get_recommendations(
     category_id: Optional[int] = None,
     min_rating: Optional[float] = Query(None, ge=1, le=5),
     max_price: Optional[float] = None,
+    include_reviewed: bool = False,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
@@ -73,21 +75,23 @@ async def get_recommendations(
     services = result.all()
     
     # Get user's previous interactions (reviews)
-    user_reviews = await db.execute(
-        select(Review).filter(Review.user_id == current_user.user_id)
-    )
-    user_reviews = user_reviews.scalars().all()
+    user_reviews = set()
+    if not include_reviewed:
+        user_reviews = await db.execute(
+            select(Review.service_id).filter(Review.user_id == current_user.user_id)
+        )
+        user_reviews = {r[0] for r in user_reviews}
     
     # Calculate preferred categories based on user's previous positive reviews
     category_preferences = {}
     
     for review in user_reviews:
-        service = await db.execute(select(Service).filter(Service.service_id == review.service_id))
+        service = await db.execute(select(Service).filter(Service.service_id == review))
         service = service.scalar_one_or_none()
         
         if service and service.category_id:
             # Weigh preference by rating and sentiment
-            preference_score = (review.rating / 5.0) * (max(0, review.sentiment_score) if review.sentiment_score else 0.5)
+            preference_score = (review / 5.0) * (max(0, service.sentiment_score) if service.sentiment_score else 0.5)
             
             if service.category_id in category_preferences:
                 category_preferences[service.category_id] += preference_score
@@ -98,8 +102,8 @@ async def get_recommendations(
     recommendations = []
     
     for service, avg_rating, avg_sentiment in services:
-        # Skip services the user has already reviewed
-        if any(review.service_id == service.service_id for review in user_reviews):
+        # Skip reviewed services unless include_reviewed is True
+        if not include_reviewed and service.service_id in user_reviews:
             continue
             
         # Apply price filter manually (since we can't do it easily in the SQL query)
@@ -175,7 +179,7 @@ async def get_recommendations(
     return recommendations[:limit]
 
 # Get trending services
-@router.get("/trending", response_model=List[ServiceRecommendation])
+@router.get("/trending/", response_model=List[ServiceRecommendation])
 async def get_trending_services(
     limit: int = Query(10, ge=1, le=50),
     days: int = Query(30, ge=1, le=365),
