@@ -139,8 +139,3 @@ poetry.lock
 # Pyproject
 pyproject.toml
 
-# Requirements
-requirements.txt
-
-# README
-README.md
