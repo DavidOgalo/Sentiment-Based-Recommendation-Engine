@@ -91,20 +91,20 @@ Defined a Docker setup for the application
 ### 7. Implementation Strategy 
 Took on a phased approach
 
-#### Phase 1: MVP (Core Features) - Version 1 ✓
+#### Phase 1: MVP (Core Features) - Version 0.1 ✓
 
 1. User management, authentication, and role-based access
 2. Basic service provider listings and reviews
 3. Simple sentiment analysis using VADER
 4. Basic recommendation algorithm
 
-#### Phase 2: Advanced Features - Version 2
+#### Phase 2: Advanced Features - Future Updates/Version
 1. Enhanced sentiment analysis with fine-tuned BERT
 2. Hybrid recommendation system
 3. Service booking functionality
 4. Provider analytics dashboard
 
-#### Phase 3: Optimization and Scaling - Version 3
+#### Phase 3: Optimization and Scaling - Future Updates/Version
 
 1. Performance improvements and caching
 2. Advanced analytics and reporting
