@@ -19,6 +19,13 @@ test_data/
 ```
 
 ## Test Data Contents
+The test data is designed to cover:
+- Category-based recommendations
+- Price-based filtering
+- Rating-based filtering (ratings from 2 to 5)
+- Sentiment analysis (diverse comments with varying sentiment)
+- User preference tracking (multiple reviews per service)
+- Trending services (services with high ratings and positive sentiment)
 
 ### Categories
 Contains predefined service categories for car wash services:
@@ -63,10 +70,21 @@ Sample reviews with:
 pip install -r requirements.txt
 ```
 
-3. Run the population script:
+3. Run the population script
 ```bash
 python populate_test_data.py
 ```
+The population script:
+- Handles all the necessary API calls in the correct order, including: 
+   - User registration 
+   - Login and token management
+   - Category creation
+   - Provider profile creation and verification
+   - Service creation 
+   - Review creation.
+- Distributes services among providers and reviews among customers
+- Includes error handling and logging
+
 
 ## Test Users
 
