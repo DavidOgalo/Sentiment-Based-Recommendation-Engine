@@ -1,0 +1,39 @@
+{
+  "providers": [
+    {
+      "email": "autobellcarwash@provider.com",
+      "password": "ProviderPass123!",
+      "role": "provider",
+      "first_name": "Robert",
+      "last_name": "Wilson"
+    },
+    {
+      "email": "tommyexpresscarwash@provider.com",
+      "password": "ProviderPass123!",
+      "role": "provider",
+      "first_name": "Sarah",
+      "last_name": "Brown"
+    },
+    {
+      "email": "modwash@provider.com",
+      "password": "ProviderPass123!",
+      "role": "provider",
+      "first_name": "David",
+      "last_name": "Lee"
+    },
+    {
+      "email": "luxedetailing@provider.com",
+      "password": "ProviderPass123!",
+      "role": "provider",
+      "first_name": "Anthony",
+      "last_name": "Mulili"
+    },
+    {
+      "email": "elitecarwash@provider.com",
+      "password": "ProviderPass123!",
+      "role": "provider",
+      "first_name": "Michael",
+      "last_name": "Chen"
+    }
+  ]
+} 

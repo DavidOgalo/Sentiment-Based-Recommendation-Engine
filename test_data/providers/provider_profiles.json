@@ -1,0 +1,76 @@
+{
+  "provider_profiles": [
+    {
+      "business_name": "ModWash Car Wash",
+      "description": "General car wash and detailing services",
+      "contact_phone": "123-456-7890",
+      "address": "123 Main St",
+      "business_hours": {
+        "monday": "9:00-17:00",
+        "tuesday": "9:00-17:00",
+        "wednesday": "9:00-17:00",
+        "thursday": "9:00-17:00",
+        "friday": "9:00-17:00"
+      },
+      "services_offered": {
+        "basic_wash": true,
+        "detailing": true,
+        "interior_cleaning": true
+      }
+    },
+    {
+      "business_name": "Luxe Detailing Car Wash",
+      "description": "Premium car detailing services with professional equipment",
+      "contact_phone": "234-567-8901",
+      "address": "456 Luxury Ave",
+      "business_hours": {
+        "monday": "10:00-18:00",
+        "tuesday": "10:00-18:00",
+        "wednesday": "10:00-18:00",
+        "thursday": "10:00-18:00",
+        "friday": "10:00-18:00"
+      },
+      "services_offered": {
+        "detailing": true,
+        "ceramic_coating": true,
+        "paint_correction": true
+      }
+    },
+    {
+      "business_name": "Autobell Car Wash",
+      "description": "Express car wash services with modern equipment",
+      "contact_phone": "345-678-9012",
+      "address": "789 Express Blvd",
+      "business_hours": {
+        "monday": "8:00-20:00",
+        "tuesday": "8:00-20:00",
+        "wednesday": "8:00-20:00",
+        "thursday": "8:00-20:00",
+        "friday": "8:00-20:00"
+      },
+      "services_offered": {
+        "basic_wash": true,
+        "interior_cleaning": true,
+        "tire_cleaning": true
+      }
+    },
+    {
+      "business_name": "Elite Car Wash",
+      "description": "High-end car care services with premium products",
+      "contact_phone": "456-789-0123",
+      "address": "321 Elite Circle",
+      "business_hours": {
+        "monday": "9:00-19:00",
+        "tuesday": "9:00-19:00",
+        "wednesday": "9:00-19:00",
+        "thursday": "9:00-19:00",
+        "friday": "9:00-19:00"
+      },
+      "services_offered": {
+        "detailing": true,
+        "engine_cleaning": true,
+        "undercarriage_cleaning": true
+      }
+    }
+  ]
+} 

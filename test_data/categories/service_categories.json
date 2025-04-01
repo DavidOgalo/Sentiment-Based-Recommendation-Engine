@@ -1,0 +1,44 @@
+{
+  "categories": [
+    {
+      "name": "General Wash",
+      "description": "General body wash and interior cleaning"
+    },
+    {
+      "name": "Exterior Car Washing",
+      "description": "Washing off dirt and mud. Polishing to restore the cars shine. Wax application for added protection and a glossy finish."
+    },
+    {
+      "name": "Interior Vacuuming and Cleaning",
+      "description": "Vacuuming, dusting, window cleaning, Interior wipe down (dashboards, consoles, door panels), leather conditioning, steam cleaning, deodorizing"
+    },
+    {
+      "name": "Engine Cleaning",
+      "description": "Cleaning the engine compartment to remove dirt and grime. Prevent overheating caused by dirt clogging the engines cooling system. Prolong the lifespan of engine components"
+    },
+    {
+      "name": "Undercarriage Cleaning",
+      "description": "Remove rust-causing elements. Protect against long-term wear and tear. Ensure better road handling."
+    },
+    {
+      "name": "Car Detailing Services",
+      "description": "Clay bar treatment to remove embedded contaminants. Paint correction to restore the cars original finish. Application of ceramic coating for long-lasting paint protection."
+    },
+    {
+      "name": "Polishing and Waxing",
+      "description": "Polishing removes minor scratches and imperfections from your cars paintwork, while waxing adds a protective layer to guard against environmental elements such as UV rays and rain. This service is ideal for keeping your car looking new and shiny."
+    },
+    {
+      "name": "Waxing and Buffing",
+      "description": "Enhance the shine of the cars paint. Provide an extra layer of protection against environmental damage."
+    },
+    {
+      "name": "Headlight Restoration",
+      "description": "Polishing to remove discoloration. Application of a protective sealant to prevent future damage."
+    },
+    {
+      "name": "Tire and Rim Cleaning",
+      "description": "Tire cleaning to remove mud, grease, and brake dust. Polishing of rims to restore their shine. Application of tire dressing for a sleek, black finish."
+    }
+  ]
+} 

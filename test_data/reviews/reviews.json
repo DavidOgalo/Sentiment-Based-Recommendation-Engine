@@ -1,0 +1,79 @@
+{
+  "reviews": [
+    {
+      "service_id": 1,
+      "rating": 5,
+      "comment": "Excellent basic wash service! The staff was friendly and efficient. My car looked spotless after the wash."
+    },
+    {
+      "service_id": 1,
+      "rating": 4,
+      "comment": "Good service overall. The basic wash was thorough and reasonably priced."
+    },
+    {
+      "service_id": 2,
+      "rating": 5,
+      "comment": "The interior cleaning was exceptional! They paid attention to every detail and my car's interior looks brand new."
+    },
+    {
+      "service_id": 3,
+      "rating": 4,
+      "comment": "Engine bay cleaning was thorough. The protective coating looks good and should help prevent future buildup."
+    },
+    {
+      "service_id": 4,
+      "rating": 5,
+      "comment": "Great undercarriage protection service. The rust prevention treatment was professionally applied."
+    },
+    {
+      "service_id": 5,
+      "rating": 5,
+      "comment": "The full detail package was worth every penny! My car looks better than when I bought it."
+    },
+    {
+      "service_id": 6,
+      "rating": 4,
+      "comment": "Paint correction and waxing were done professionally. The shine is impressive."
+    },
+    {
+      "service_id": 7,
+      "rating": 5,
+      "comment": "Headlight restoration worked wonders! My headlights are now crystal clear and properly sealed."
+    },
+    {
+      "service_id": 8,
+      "rating": 4,
+      "comment": "Tire and wheel package was thorough. The tire dressing looks great and should last."
+    },
+    {
+      "service_id": 9,
+      "rating": 3,
+      "comment": "Express wash was quick but could have been more thorough. Wax application was good though."
+    },
+    {
+      "service_id": 10,
+      "rating": 5,
+      "comment": "Deep interior cleaning was amazing! The steam treatment removed all stains and odors."
+    },
+    {
+      "service_id": 1,
+      "rating": 2,
+      "comment": "Disappointed with the service. The wash was rushed and missed several spots."
+    },
+    {
+      "service_id": 2,
+      "rating": 3,
+      "comment": "Interior cleaning was okay but took longer than expected. Some areas were missed."
+    },
+    {
+      "service_id": 5,
+      "rating": 4,
+      "comment": "Good detailing service overall. The ceramic coating application was professional."
+    },
+    {
+      "service_id": 8,
+      "rating": 5,
+      "comment": "Excellent tire and wheel service! The brake dust was completely removed."
+    }
+  ]
+} 
