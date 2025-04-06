@@ -59,13 +59,13 @@ docker-compose -f docker/docker-compose.yml up -d
 
 For detailed information about each component, please refer to:
 
-- [Frontend Documentation](frontend/README.md)
+- [Frontend Documentation](./frontend/README.md)
   - Setup and development
   - Component structure
   - API integration
   - Deployment guide
 
-- [Backend Documentation](backend/README.md)
+- [Backend Documentation](./backend/README.md)
   - API endpoints
   - Authentication
   - Database schema
@@ -257,8 +257,3 @@ Took on a phased approach
 - Python 3.8+
 - PostgreSQL 15+
 
-
-## Getting Started
-
-1. Clone the repository:
-```
