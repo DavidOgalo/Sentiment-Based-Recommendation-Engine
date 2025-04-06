@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { providersApi, servicesApi, reviewsApi } from '@/lib/api';
+import { providersApi } from '@/lib/api';
 import Layout from '@/components/layout/Layout';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,6 +12,7 @@ interface Provider {
   description: string;
   is_verified: boolean;
   average_rating: number;
+  bio: string;
 }
 
 interface Service {
@@ -38,15 +39,23 @@ interface Review {
   };
 }
 
-const ProviderDetailsPage = () => {
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  is_provider: boolean;
+  is_admin: boolean;
+}
+
+export default function ProviderDetailsPage() {
   const router = useRouter();
   const { id } = router.query;
   const { user } = useAuth();
   const [provider, setProvider] = useState<Provider | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,56 +64,61 @@ const ProviderDetailsPage = () => {
       try {
         const [providerResponse, servicesResponse, reviewsResponse] = await Promise.all([
           providersApi.getById(Number(id)),
-          servicesApi.list({ provider_id: Number(id) }),
-          reviewsApi.list({ provider_id: Number(id) }),
+          providersApi.getServices(Number(id)),
+          providersApi.getReviews(Number(id)),
         ]);
 
-        setProvider(providerResponse.data);
-        setServices(servicesResponse.data);
-        setReviews(reviewsResponse.data);
-      } catch (err) {
-        setError('Failed to fetch provider details');
+        setProvider(providerResponse.data as Provider);
+        setServices(servicesResponse.data as Service[]);
+        setReviews(reviewsResponse.data as Review[]);
+      } catch (error: any) {
+        console.error('Failed to fetch provider details:', error);
+        setError(error.response?.data?.detail || 'Failed to fetch provider details');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
     fetchData();
   }, [id]);
 
-  const handleVerify = async () => {
-    if (!provider) return;
+  const handleVerificationStatus = async () => {
+    if (!provider || !user?.is_admin) return;
 
     try {
-      if (provider.is_verified) {
-        await providersApi.unverify(provider.id);
-      } else {
-        await providersApi.verify(provider.id);
-      }
+      await providersApi.update(provider.id, {
+        name: provider.name,
+        bio: provider.description,
+        is_verified: !provider.is_verified,
+      });
+      
       // Refresh provider data
-      const response = await providersApi.getById(Number(id));
-      setProvider(response.data);
-    } catch (err) {
-      setError('Failed to update verification status');
+      const updatedProvider = await providersApi.getById(provider.id);
+      setProvider(updatedProvider.data as Provider);
+    } catch (error: any) {
+      console.error('Failed to update verification status:', error);
+      setError(error.response?.data?.detail || 'Failed to update verification status');
     }
   };
 
-  const getSentimentColor = (score: number) => {
+  const getSentimentColor = (score: number): string => {
     if (score >= 0.6) return 'text-green-600';
     if (score >= 0.3) return 'text-yellow-600';
     return 'text-red-600';
   };
 
-  const getSentimentLabel = (score: number) => {
+  const getSentimentLabel = (score: number): string => {
     if (score >= 0.6) return 'Positive';
     if (score >= 0.3) return 'Neutral';
     return 'Negative';
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Layout>
-        <div className="text-center">Loading...</div>
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
+        </div>
       </Layout>
     );
   }
@@ -112,8 +126,14 @@ const ProviderDetailsPage = () => {
   if (error || !provider) {
     return (
       <Layout>
-        <div className="text-center text-red-500">
-          {error || 'Provider not found'}
+        <div className="text-center py-12">
+          <p className="text-red-500">{error || 'Provider not found'}</p>
+          <button
+            onClick={() => router.back()}
+            className="mt-4 text-indigo-600 hover:text-indigo-500"
+          >
+            Go Back
+          </button>
         </div>
       </Layout>
     );
@@ -152,10 +172,10 @@ const ProviderDetailsPage = () => {
                 </dd>
               </div>
             </dl>
-            {user?.role === 'admin' && (
+            {user?.is_admin && (
               <div className="mt-6">
                 <button
-                  onClick={handleVerify}
+                  onClick={handleVerificationStatus}
                   className={`px-4 py-2 rounded-md text-sm font-medium ${
                     provider.is_verified
                       ? 'bg-red-100 text-red-700 hover:bg-red-200'
@@ -250,14 +270,16 @@ const ProviderDetailsPage = () => {
                             <svg
                               key={i}
                               className={`h-5 w-5 ${
-                                i < review.rating
-                                  ? 'text-yellow-400'
-                                  : 'text-gray-300'
+                                i < review.rating ? 'text-yellow-400' : 'text-gray-300'
                               }`}
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              <path
+                                fillRule="evenodd"
+                                d="M10 15.585l-7.07 3.714 1.35-7.858L.72 7.227l7.88-1.144L10 0l2.4 6.083 7.88 1.144-5.56 5.214 1.35 7.858z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           ))}
                         </div>
@@ -270,7 +292,7 @@ const ProviderDetailsPage = () => {
                         </span>
                       </div>
                     </div>
-                    <p className="mt-4 text-gray-700">{review.comment}</p>
+                    <p className="mt-2 text-sm text-gray-500">{review.comment}</p>
                   </div>
                 </div>
               ))}
@@ -280,6 +302,4 @@ const ProviderDetailsPage = () => {
       </div>
     </Layout>
   );
-};
-
-export default ProviderDetailsPage; 
+} 

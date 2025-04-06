@@ -1,6 +1,99 @@
 # Sentiment-Based Recommendation Engine
 
-A sentiment-based recommendation algorithm for service provider applications that leverages sentiment analysis and user preferences to provide personalized service recommendations. Focused on developing a modular architecture that can be applied and scale across different use-case industries while maintaining the core functionality. 
+A sentiment-based recommendation algorithm for service provider applications that leverages sentiment analysis and user preferences to provide personalized service recommendations. The project consists of a backend API built with FastAPI and a modern frontend interface built with Next.js.
+
+## Project Structure
+
+```
+Sentiment-Based-Recommendation-Engine/
+├── backend/                 # FastAPI backend application
+│   ├── app/                # Application code
+│   ├── alembic/            # Database migrations
+│   ├── docs/               # Backend documentation
+│   └── test_data/          # Test data
+├── frontend/               # Next.js frontend application
+│   ├── src/                # Source code
+│   ├── public/             # Static assets
+│   └── test_data/          # Test data
+├── docker/                 # Docker configuration
+│   ├── backend.Dockerfile  # Backend Dockerfile
+│   ├── frontend.Dockerfile # Frontend Dockerfile
+│   └── docker-compose.yml  # Docker Compose configuration
+└── docs/                   # Project documentation
+    └── README.md           # This file
+```
+
+## Features
+
+### Backend
+- RESTful API with OpenAPI documentation
+- JWT-based authentication
+- Role-based access control
+- Sentiment analysis pipeline
+- Recommendation engine
+- Database migrations with Alembic
+- Docker support
+- Comprehensive test suite
+
+### Frontend
+- Modern, responsive UI with Tailwind CSS
+- User authentication and authorization
+- Service browsing and search
+- Review system with sentiment analysis
+- Personalized recommendations
+- Dark/Light mode support
+
+## Getting Started
+
+### Prerequisites
+
+- Docker and Docker Compose
+- Node.js 18+ (for frontend development)
+- Python 3.8+ (for backend development)
+- PostgreSQL 15+
+
+### Quick Start with Docker
+
+1. Clone the repository:
+```bash
+git clone https://github.com/DavidOgalo/Sentiment-Based-Recommendation-Engine.git
+cd Sentiment-Based-Recommendation-Engine
+```
+
+2. Start the application:
+```bash
+docker-compose -f docker/docker-compose.yml up -d
+```
+
+3. Access the applications:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8001
+- API Documentation: http://localhost:8001/docs
+
+### Development Setup
+
+For detailed setup instructions, see:
+- [Backend Development Guide](backend/README.md)
+- [Frontend Development Guide](frontend/README.md)
+
+## Documentation
+
+- [Backend Documentation](backend/README.md)
+- [Frontend Documentation](frontend/README.md)
+- [API Documentation](http://localhost:8001/docs)
+- [Database Schema](backend/docs/schema.sql)
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## System Architecture Overview
 ### 1. Core Backend Services

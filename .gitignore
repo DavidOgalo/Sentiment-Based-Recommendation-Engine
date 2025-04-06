@@ -139,3 +139,30 @@ poetry.lock
 # Pyproject
 pyproject.toml
 
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.pnp
+frontend/.pnp.js
+frontend/coverage/
+frontend/.DS_Store
+frontend/Thumbs.db
+frontend/.vercel
+frontend/.turbo
+
+# IDE
+.idea/
+*.swp
+*.swo
+.vscode/
+*.code-workspace
+

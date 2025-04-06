@@ -1,26 +1,24 @@
-import React from 'react';
+import { ReactNode } from 'react';
 import Navbar from './Navbar';
 
 interface LayoutProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-const Layout = ({ children }: LayoutProps) => {
+export default function Layout({ children }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="flex-grow container mx-auto px-4 py-8">
         {children}
       </main>
-      <footer className="bg-white shadow mt-8">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-gray-500 text-sm">
-            © {new Date().getFullYear()} SentimentRec. All rights reserved.
+      <footer className="bg-gray-50 border-t">
+        <div className="container mx-auto px-4 py-6">
+          <p className="text-center text-gray-600 text-sm">
+            © {new Date().getFullYear()} Service Review Platform. All rights reserved.
           </p>
         </div>
       </footer>
     </div>
   );
-};
-
-export default Layout; 
+} 
