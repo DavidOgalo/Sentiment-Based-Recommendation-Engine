@@ -2,57 +2,42 @@
 
 A sentiment-based recommendation algorithm for service provider applications that leverages sentiment analysis and user preferences to provide personalized service recommendations. The project consists of a backend API built with FastAPI and a modern frontend interface built with Next.js.
 
-## Project Structure
+## Project Overview
 
-```
-Sentiment-Based-Recommendation-Engine/
-├── backend/                 # FastAPI backend application
-│   ├── app/                # Application code
-│   ├── alembic/            # Database migrations
-│   ├── docs/               # Backend documentation
-│   └── test_data/          # Test data
-├── frontend/               # Next.js frontend application
-│   ├── src/                # Source code
-│   ├── public/             # Static assets
-│   └── test_data/          # Test data
-├── docker/                 # Docker configuration
-│   ├── backend.Dockerfile  # Backend Dockerfile
-│   ├── frontend.Dockerfile # Frontend Dockerfile
-│   └── docker-compose.yml  # Docker Compose configuration
-└── docs/                   # Project documentation
-    └── README.md           # This file
-```
+This project aims to provide a comprehensive solution for service discovery and recommendation, combining sentiment analysis of user reviews with personalized recommendations. The system helps users find the best services based on their preferences and helps service providers understand and improve their offerings.
 
-## Features
+## System Architecture
 
-### Backend
-- RESTful API with OpenAPI documentation
-- JWT-based authentication
-- Role-based access control
-- Sentiment analysis pipeline
-- Recommendation engine
-- Database migrations with Alembic
-- Docker support
-- Comprehensive test suite
+The project follows a microservices architecture with the following components:
 
-### Frontend
-- Modern, responsive UI with Tailwind CSS
-- User authentication and authorization
-- Service browsing and search
-- Review system with sentiment analysis
-- Personalized recommendations
-- Dark/Light mode support
+1. **Frontend Application** (Next.js)
+   - User interface for service discovery and management
+   - Review system with sentiment visualization
+   - Personalized recommendations
+   - Authentication and authorization
 
-## Getting Started
+2. **Backend API** (FastAPI)
+   - RESTful API endpoints
+   - Authentication and authorization
+   - Sentiment analysis pipeline
+   - Recommendation engine
+   - Database management
+
+3. **Database** (PostgreSQL)
+   - User data
+   - Service information
+   - Reviews and ratings
+   - Sentiment analysis results
+
+## Quick Start
 
 ### Prerequisites
 
 - Docker and Docker Compose
 - Node.js 18+ (for frontend development)
 - Python 3.8+ (for backend development)
-- PostgreSQL 15+
 
-### Quick Start with Docker
+### Running with Docker
 
 1. Clone the repository:
 ```bash
@@ -70,18 +55,61 @@ docker-compose -f docker/docker-compose.yml up -d
 - Backend API: http://localhost:8001
 - API Documentation: http://localhost:8001/docs
 
-### Development Setup
+## Detailed Documentation
 
-For detailed setup instructions, see:
-- [Backend Development Guide](backend/README.md)
-- [Frontend Development Guide](frontend/README.md)
+For detailed information about each component, please refer to:
 
-## Documentation
+- [Frontend Documentation](frontend/README.md)
+  - Setup and development
+  - Component structure
+  - API integration
+  - Deployment guide
 
 - [Backend Documentation](backend/README.md)
-- [Frontend Documentation](frontend/README.md)
-- [API Documentation](http://localhost:8001/docs)
-- [Database Schema](backend/docs/schema.sql)
+  - API endpoints
+  - Authentication
+  - Database schema
+  - Development setup
+
+## Key Features
+
+### User Features
+- User registration and authentication
+- Service browsing and search
+- Review submission and management
+- Personalized service recommendations
+- Provider verification system
+
+### Provider Features
+- Service management
+- Review monitoring
+- Performance analytics
+- Verification status management
+
+### Admin Features
+- User management
+- Provider verification
+- System monitoring
+- Content moderation
+
+## Development Workflow
+
+1. **Setup Development Environment**
+   - Follow the setup instructions in the respective component READMEs
+   - Set up environment variables
+   - Install dependencies
+
+2. **Development**
+   - Frontend: `npm run dev` in the frontend directory
+   - Backend: `uvicorn app.main:app --reload` in the backend directory
+
+3. **Testing**
+   - Frontend: `npm test`
+   - Backend: `pytest`
+
+4. **Deployment**
+   - Follow the deployment instructions in the respective component READMEs
+   - Use Docker for production deployment
 
 ## Contributing
 
@@ -229,163 +257,8 @@ Took on a phased approach
 - Python 3.8+
 - PostgreSQL 15+
 
-## Project Structure
-
-```
-Root/
-├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   ├── core/
-│   │   ├── models/
-│   │   └── schemas/
-│   ├── alembic/
-│   └── tests/
-├── docker/
-└── test_data/
-```
 
 ## Getting Started
 
 1. Clone the repository:
-```bash
-git clone https://github.com/DavidOgalo/Sentiment-Based-Recommendation-Engine.git
-cd Sentiment-Based-Recommendation-Engine
 ```
-
-2. Set up environment variables:
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-3. Start the application using Docker Compose:
-```bash
-docker-compose up -d
-```
-
-4. Access the API documentation:
-```
-http://localhost:8001/docs
-```
-
-## API Endpoints
-
-### Authentication
-- `POST /auth/register` - Register a new user
-- `POST /auth/login` - Login user and get access token
-- `POST /auth/verify-email` - Verify user email
-- `POST /auth/forgot-password` - Request password reset
-- `POST /auth/reset-password` - Reset password
-
-### Users
-- `GET /users/me` - Get current user profile
-- `PUT /users/me` - Update current user profile
-- `GET /users/{user_id}` - Get user profile by ID
-- `PUT /users/{user_id}` - Update user profile by ID
-- `DELETE /users/{user_id}` - Delete user (admin only)
-
-### Service Providers
-- `POST /providers/` - Create provider profile
-- `GET /providers/` - List all providers
-- `GET /providers/{provider_id}` - Get provider details
-- `PUT /providers/{provider_id}` - Update provider profile
-- `POST /providers/{provider_id}/verify` - Verify provider (admin only)
-
-### Services
-- `POST /services/` - Create new service
-- `GET /services/` - List all services
-- `GET /services/{service_id}` - Get service details
-- `PUT /services/{service_id}` - Update service
-- `DELETE /services/{service_id}` - Delete service
-
-### Categories
-- `POST /categories/` - Create service category
-- `GET /categories/` - List all categories
-- `GET /categories/{category_id}` - Get category details
-- `PUT /categories/{category_id}` - Update category
-- `DELETE /categories/{category_id}` - Delete category
-
-### Reviews
-- `POST /reviews/` - Create new review
-- `GET /reviews/` - List all reviews
-- `GET /reviews/{review_id}` - Get review details
-- `PUT /reviews/{review_id}` - Update review
-- `DELETE /reviews/{review_id}` - Delete review
-
-### Recommendations
-- `GET /recommendations/` - Get personalized recommendations
-- `GET /recommendations/trending` - Get trending services
-- `POST /recommendations/{recommendation_id}/click` - Record recommendation click
-- `POST /recommendations/{recommendation_id}/book` - Record recommendation booking
-
-### User Preferences
-- `POST /preferences/` - Create user preferences
-- `GET /preferences/` - Get user preferences
-- `PUT /preferences/` - Update user preferences
-
-### Bookings
-- `POST /bookings/` - Create new booking
-- `GET /bookings/` - List all bookings
-- `GET /bookings/{booking_id}` - Get booking details
-- `PUT /bookings/{booking_id}` - Update booking status
-- `DELETE /bookings/{booking_id}` - Cancel booking
-
-## Database Schema
-
-The application uses PostgreSQL with the following main tables:
-- users
-- service_providers
-- services
-- service_categories
-- reviews
-- review_sentiment_details
-- recommendations
-- user_preferences
-- user_interactions
-- bookings
-
-For detailed schema information, see `database-schema.sql`
-
-## Testing
-
-1. Run tests using Docker:
-```bash
-docker-compose run backend pytest
-```
-
-2. Run test data population:
-```bash
-python test_data/populate_test_data.py
-```
-
-## Development
-
-1. Create a new branch:
-```bash
-git checkout -b feature/your-feature-name
-```
-
-2. Make your changes and commit:
-```bash
-git add .
-git commit -m "Description of your changes"
-```
-
-3. Push to your branch:
-```bash
-git push origin feature/your-feature-name
-```
-
-4. Create a Pull Request
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
-
-
-
