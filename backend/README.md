@@ -42,6 +42,72 @@ backend/
 └── test_data/         # Test data
 ```
 
+## API Endpoints
+
+### Authentication Module
+- `POST /auth/register` - Register a new user
+- `POST /auth/login` - Login user and get access token
+- `POST /auth/refresh` - Refresh access token
+- `POST /auth/verify-email` - Verify user email
+- `POST /auth/forgot-password` - Request password reset
+- `POST /auth/reset-password` - Reset password
+
+### User Management Module
+- `GET /users/me` - Get current user profile
+- `PUT /users/me` - Update current user profile
+- `GET /users/{user_id}` - Get user profile by ID (admin only)
+- `PUT /users/{user_id}` - Update user profile by ID (admin only)
+- `DELETE /users/{user_id}` - Delete user (admin only)
+
+### Service Provider Module
+- `POST /providers/` - Create provider profile
+- `GET /providers/` - List all providers
+- `GET /providers/{provider_id}` - Get provider details
+- `PUT /providers/{provider_id}` - Update provider profile
+- `POST /providers/{provider_id}/verify` - Verify provider (admin only)
+- `DELETE /providers/{provider_id}` - Delete provider (admin only)
+
+### Services Module
+- `POST /services/` - Create new service
+- `GET /services/` - List all services
+- `GET /services/{service_id}` - Get service details
+- `PUT /services/{service_id}` - Update service
+- `DELETE /services/{service_id}` - Delete service
+- `GET /services/categories/{category_id}` - List services by category
+
+### Categories Module
+- `POST /categories/` - Create service category (admin only)
+- `GET /categories/` - List all categories
+- `GET /categories/{category_id}` - Get category details
+- `PUT /categories/{category_id}` - Update category (admin only)
+- `DELETE /categories/{category_id}` - Delete category (admin only)
+
+### Reviews Module
+- `POST /reviews/` - Create new review
+- `GET /reviews/` - List all reviews
+- `GET /reviews/{review_id}` - Get review details
+- `PUT /reviews/{review_id}` - Update review
+- `DELETE /reviews/{review_id}` - Delete review
+- `GET /reviews/service/{service_id}` - List reviews for a service
+- `GET /reviews/user/{user_id}` - List reviews by a user
+
+### Sentiment Analysis Module
+- `POST /sentiment/analyze` - Analyze text sentiment
+- `GET /sentiment/service/{service_id}` - Get sentiment analysis for a service
+- `GET /sentiment/provider/{provider_id}` - Get sentiment analysis for a provider
+
+### Recommendations Module
+- `GET /recommendations/` - Get personalized recommendations
+- `GET /recommendations/trending` - Get trending services
+- `GET /recommendations/category/{category_id}` - Get category-specific recommendations
+- `POST /recommendations/feedback` - Submit recommendation feedback
+
+### User Preferences Module
+- `POST /preferences/` - Create user preferences
+- `GET /preferences/` - Get user preferences
+- `PUT /preferences/` - Update user preferences
+- `DELETE /preferences/` - Delete user preferences
+
 ## Getting Started
 
 1. Set up the environment:
@@ -84,6 +150,8 @@ http://localhost:8000/docs
 - `ALGORITHM`: JWT algorithm (default: HS256)
 - `ACCESS_TOKEN_EXPIRE_MINUTES`: Token expiration time
 - `API_V1_STR`: API version prefix
+- `SENTIMENT_MODEL_PATH`: Path to sentiment analysis model
+- `RECOMMENDATION_MODEL_PATH`: Path to recommendation model
 
 ## Development
 
@@ -99,49 +167,44 @@ The API documentation is available at `/docs` when running the server. It includ
 - Interactive API testing
 - Request/response schemas
 - Authentication requirements
-- Example requests
-
-## Database Migrations
-
-Database migrations are managed using Alembic. To create a new migration:
-
-1. Make changes to the SQLAlchemy models
-2. Generate a migration:
-```bash
-alembic revision --autogenerate -m "description"
-```
-3. Apply the migration:
-```bash
-alembic upgrade head
-```
+- Example requests and responses
 
 ## Testing
 
-The test suite uses pytest. To run tests:
-
+1. Run unit tests:
 ```bash
 pytest
 ```
 
-For coverage report:
+2. Run integration tests:
+```bash
+pytest tests/integration
+```
+
+3. Run with coverage:
 ```bash
 pytest --cov=app tests/
 ```
 
-## Deployment
-
-The backend can be deployed using Docker:
-
-```bash
-docker-compose -f ../docker/docker-compose.yml up -d
-```
-
 ## Contributing
 
-1. Create a new branch for your feature
-2. Make your changes
-3. Run tests and linter
-4. Submit a pull request
+1. Create a new branch:
+```bash
+git checkout -b feature/your-feature-name
+```
+
+2. Make your changes and commit:
+```bash
+git add .
+git commit -m "Description of your changes"
+```
+
+3. Push to your branch:
+```bash
+git push origin feature/your-feature-name
+```
+
+4. Create a Pull Request
 
 ## License
 

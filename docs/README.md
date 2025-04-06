@@ -59,13 +59,13 @@ docker-compose -f docker/docker-compose.yml up -d
 
 For detailed information about each component, please refer to:
 
-- [Frontend Documentation](./frontend/README.md)
+- [Frontend Documentation](../frontend/README.md)
   - Setup and development
   - Component structure
   - API integration
   - Deployment guide
 
-- [Backend Documentation](./backend/README.md)
+- [Backend Documentation](../backend/README.md)
   - API endpoints
   - Authentication
   - Database schema
@@ -111,19 +111,8 @@ For detailed information about each component, please refer to:
    - Follow the deployment instructions in the respective component READMEs
    - Use Docker for production deployment
 
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## System Architecture Overview
+
 ### 1. Core Backend Services
 Python-based microservices handling specific business logic.
 
@@ -142,9 +131,9 @@ Python-based microservices handling specific business logic.
 - Analytics dashboard data for service providers
 - Performance metrics and reporting
 
-
 ### 2. ML Pipeline
 Sentiment analysis and recommendation engine.
+
 #### Sentiment Analysis Module
 Implementation Details
 - Initial Approach: VADER for fast, rule-based sentiment analysis
@@ -152,7 +141,6 @@ Implementation Details
 - Hybrid Approach: Combining lexicon-based and deep learning methods for better accuracy
 
 The sentiment pipeline will:
-
 1. Preprocess text (remove stopwords, normalize, handle negations)
 2. Extract linguistic features (adjectives, adverbs with high sentiment load)
 3. Apply contextual analysis (service-specific terminology)
@@ -160,20 +148,23 @@ The sentiment pipeline will:
 5. Store results in the database
 
 #### Recommendation Engine Module
-I used a hybrid recommendation system that combines:
+A hybrid recommendation system that combines:
 1. Content-based filtering: Matching user preferences with service attributes
 2. Collaborative filtering: Finding patterns among similar users' preferences
 3. Sentiment-weighted ranking: Prioritizing services with positive sentiment scores
 
 Implementation Details
 - Feature vector generation for each service provider including:
-Average sentiment score (weighted by recency), Categories and specializations, Geographic proximity, Response time and availability
+  - Average sentiment score (weighted by recency)
+  - Categories and specializations
+  - Geographic proximity
+  - Response time and availability
 - Matrix factorization using SVD for dimensionality reduction
 - User similarity computation using cosine similarity
 - Real-time score adjustment based on new reviews
 
 ### 3. Data Layer
-Set up a PostgreSQL instance with a schema that supports:
+PostgreSQL database with a schema that supports:
 - Detailed sentiment analysis storage
 - Geographic querying for location-based recommendations
 - Service categorization for better matching
@@ -181,56 +172,52 @@ Set up a PostgreSQL instance with a schema that supports:
 - Interaction tracking for recommendation improvement
 
 ### 4. API Gateway
-Implemented a comprehensive API layer using FastAPI
+Comprehensive API layer using FastAPI with:
+- RESTful endpoints
+- OpenAPI documentation
+- Rate limiting
+- Request validation
+- Error handling
 
 ### 5. Authentication and Authorization
-#### Approach
- Used OAuth2 with JWT (JSON Web Tokens) for authentication, which is secure and scalable. FastAPI has built-in support for OAuth2.
+OAuth2 with JWT (JSON Web Tokens) implementation:
+- User registration and login
+- Password hashing with bcrypt
+- JWT token generation and validation
+- Role-based access control (RBAC)
+- Token refresh mechanism
 
-#### Implementation
-**1. User Registration & Login**
+## Implementation Strategy
 
-- `/auth/register` → To register users.
-- `/auth/login` → To authenticate users and return JWT tokens.
-
-**2. Password Hashing**
-
-- Used **`bcrypt`** to hash passwords securely.
-
-**3. JWT Token Generation**
-
-- Generate **access tokens** using **PyJWT**.
-
-**4. Role-Based Access Control (RBAC)**
-
-- Define roles: **customer, service provider, admin**.
-- Use **JWT token claims** to store user roles.
-
-### 6. Infrastructure and Deployment
-Defined a Docker setup for the application
-
-### 7. Implementation Strategy 
-Took on a phased approach
-
-#### Phase 1: MVP (Core Features) - Version 0.1 ✓
-
+### Phase 1: MVP (Core Features) - Version 0.1 ✓
 1. User management, authentication, and role-based access
 2. Basic service provider listings and reviews
 3. Simple sentiment analysis using VADER
 4. Basic recommendation algorithm
 
-#### Phase 2: Advanced Features - Future Updates/Version
+### Phase 2: Advanced Features - Future Updates/Version
 1. Enhanced sentiment analysis with fine-tuned BERT
 2. Hybrid recommendation system
 3. Service booking functionality
 4. Provider analytics dashboard
 
-#### Phase 3: Optimization and Scaling - Future Updates/Version
-
+### Phase 3: Optimization and Scaling - Future Updates/Version
 1. Performance improvements and caching
 2. Advanced analytics and reporting
 3. Mobile app support via enhanced API
 4. Multi-language support
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Application Features
 - User Authentication and Authorization (JWT-based)
