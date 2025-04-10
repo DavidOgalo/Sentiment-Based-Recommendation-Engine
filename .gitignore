@@ -130,8 +130,9 @@ alembic/versions/__pycache__/
 alembic.ini
 
 # Docker
-infrastructure/docker-compose.yml
-Dockerfile
+docker-compose.yml
+docker/backend.Dockerfile
+docker/frontend.Dockerfile
 
 # Poetry
 poetry.lock
