@@ -6,8 +6,7 @@ interface User {
   id: number;
   name: string;
   email: string;
-  is_provider: boolean;
-  is_admin: boolean;
+  role: string;
 }
 
 interface RegisterData {
