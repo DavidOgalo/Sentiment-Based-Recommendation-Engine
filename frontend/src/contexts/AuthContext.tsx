@@ -1,135 +1,97 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { authApi } from '@/lib/api';
 
 interface User {
-  id: number;
-  name: string;
+  user_id: number;
   email: string;
-  role: string;
-}
-
-interface RegisterData {
-  email: string;
-  password: string;
+  role: 'customer' | 'provider' | 'admin';
   first_name: string;
   last_name: string;
-  is_provider: boolean;
-}
-
-interface LoginData {
-  username: string;
-  password: string;
-}
-
-interface AuthResponse {
-  token: string;
-  user: User;
+  created_at: string;
+  last_login: string | null;
+  is_active: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  error: string | null;
   login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
   register: (data: {
-    name: string;
     email: string;
     password: string;
-    is_provider: boolean;
+    role: 'customer' | 'provider' | 'admin';
+    first_name: string;
+    last_name: string;
   }) => Promise<void>;
-  logout: () => void;
-  clearError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
 
-  const checkAuth = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setLoading(false);
-        return;
+    if (token && storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
       }
-
-      const response = await authApi.getCurrentUser();
-      const userData = response.data as User;
-      setUser(userData);
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      localStorage.removeItem('token');
-    } finally {
-      setLoading(false);
     }
-  };
+    setLoading(false);
+  }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      setError(null);
-      const response = await authApi.login({ username: email, password });
-      const authData = response.data as AuthResponse;
-      localStorage.setItem('token', authData.token);
-      setUser(authData.user);
+      const response = await authApi.login({ email, password });
+      setUser(response.user);
       router.push('/');
-    } catch (error: any) {
-      console.error('Login failed:', error);
-      setError(error.response?.data?.detail || 'Login failed');
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await authApi.logout();
+      setUser(null);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    } catch (error) {
+      console.error('Logout error:', error);
       throw error;
     }
   };
 
   const register = async (data: {
-    name: string;
     email: string;
     password: string;
-    is_provider: boolean;
+    role: 'customer' | 'provider' | 'admin';
+    first_name: string;
+    last_name: string;
   }) => {
     try {
-      setError(null);
       const response = await authApi.register(data);
-      const authData = response.data as AuthResponse;
-      localStorage.setItem('token', authData.token);
-      setUser(authData.user);
+      setUser(response.user);
       router.push('/');
-    } catch (error: any) {
-      console.error('Registration failed:', error);
-      setError(error.response?.data?.detail || 'Registration failed');
+    } catch (error) {
+      console.error('Registration error:', error);
       throw error;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-    router.push('/login');
-  };
-
-  const clearError = () => {
-    setError(null);
-  };
-
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        error,
-        login,
-        register,
-        logout,
-        clearError,
-      }}
-    >
+    <AuthContext.Provider value={{ user, loading, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   );

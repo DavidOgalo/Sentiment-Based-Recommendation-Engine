@@ -4,9 +4,14 @@ from sqlalchemy.future import select
 from typing import List, Optional, Dict
 from pydantic import BaseModel, Field, constr
 from datetime import datetime
+import logging
 from backend.app.models.database import get_db
 from backend.app.models.models import Service, ServiceProvider, User, ServiceCategory
 from backend.app.api.auth import get_current_active_user, get_admin_user
+from sqlalchemy import or_
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -33,13 +38,17 @@ class ServiceUpdate(ServiceBase):
     category_id: Optional[int] = None
     is_active: Optional[bool] = None
 
-class ServiceResponse(ServiceCreate):
+class ServiceResponse(BaseModel):
     service_id: int
-    provider_id: int
-    is_active: bool = True
-    
+    name: str
+    description: str
+    price_range: dict
+    category_name: str
+    provider_name: str
+    average_rating: float = 0.0
+
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class CategoryCreate(BaseModel):
     name: str
@@ -92,35 +101,72 @@ async def create_service(
 
 @router.get("/", response_model=List[ServiceResponse])
 async def list_services(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1),
-    provider_id: Optional[int] = None,
+    db: AsyncSession = Depends(get_db),
+    search: Optional[str] = None,
     category_id: Optional[int] = None,
-    db: AsyncSession = Depends(get_db)
+    skip: int = 0,
+    limit: int = 100
 ):
-    query = select(Service).where(Service.is_active == True)
-    
-    if provider_id:
-        query = query.filter(Service.provider_id == provider_id)
-    if category_id:
-        query = query.filter(Service.category_id == category_id)
-    
-    query = query.offset(skip).limit(limit)
-    result = await db.execute(query)
-    return result.scalars().all()
+    try:
+        # Build the base query
+        stmt = select(Service, ServiceCategory.name.label('category_name'), ServiceProvider.business_name.label('provider_name'))
+        stmt = stmt.join(ServiceCategory, Service.category_id == ServiceCategory.category_id)
+        stmt = stmt.join(ServiceProvider, Service.provider_id == ServiceProvider.provider_id)
+        stmt = stmt.where(Service.is_active == True)
+
+        # Apply filters
+        if search:
+            stmt = stmt.where(Service.name.ilike(f"%{search}%"))
+        if category_id:
+            stmt = stmt.where(Service.category_id == category_id)
+
+        # Apply pagination
+        stmt = stmt.offset(skip).limit(limit)
+
+        # Execute the query
+        result = await db.execute(stmt)
+        services = result.all()
+
+        # Format the response
+        formatted_services = []
+        for service, category_name, provider_name in services:
+            service_dict = service.__dict__
+            service_dict['category_name'] = category_name
+            service_dict['provider_name'] = provider_name
+            service_dict['average_rating'] = service.average_rating or 0.0
+            formatted_services.append(service_dict)
+
+        return formatted_services
+    except Exception as e:
+        logger.error(f"Error listing services: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch services")
 
 @router.get("/{service_id}", response_model=ServiceResponse)
 async def get_service(
     service_id: int,
     db: AsyncSession = Depends(get_db)
 ):
-    service = await db.execute(
-        select(Service).filter(Service.service_id == service_id)
-    )
-    service = service.scalar_one_or_none()
-    if not service:
-        raise HTTPException(status_code=404, detail="Service not found")
-    return service
+    query = select(Service, ServiceCategory.name.label('category_name'), ServiceProvider.business_name.label('provider_name'))
+    query = query.join(ServiceCategory, Service.category_id == ServiceCategory.category_id)
+    query = query.join(ServiceProvider, Service.provider_id == ServiceProvider.provider_id)
+    query = query.filter(Service.service_id == service_id)
+    
+    result = await db.execute(query)
+    service_data = result.first()
+    
+    if not service_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Service not found"
+        )
+    
+    service, category_name, provider_name = service_data
+    service_dict = service.__dict__
+    service_dict['category_name'] = category_name
+    service_dict['provider_name'] = provider_name
+    service_dict['average_rating'] = service.average_rating or 0.0
+    
+    return service_dict
 
 @router.put("/{service_id}", response_model=ServiceResponse)
 async def update_service(

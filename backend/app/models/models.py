@@ -81,6 +81,7 @@ class Service(Base):
     duration_minutes = Column(Integer)
     created_at = Column(DateTime, default=datetime.utcnow)
     is_active = Column(Boolean, default=True)
+    average_rating = Column(Float, default=0.0)
 
     # Relationships
     provider = relationship("ServiceProvider", back_populates="services")

@@ -8,9 +8,13 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const router = useRouter();
 
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/auth/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   return (
@@ -43,6 +47,12 @@ const Navbar = () => {
                 } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
               >
                 Services
+              </Link>
+              <Link
+                href="/providers"
+                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+              >
+                Providers
               </Link>
               {user?.role === 'customer' && (
                 <Link
@@ -85,10 +95,12 @@ const Navbar = () => {
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             {user ? (
               <div className="flex items-center space-x-4">
-                <span className="text-gray-700">{user.name}</span>
+                <span className="text-gray-700">
+                  Welcome, {user.first_name} {user.last_name}
+                </span>
                 <button
                   onClick={handleLogout}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-2 rounded-md text-sm font-medium"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   Logout
                 </button>
@@ -96,16 +108,16 @@ const Navbar = () => {
             ) : (
               <div className="flex items-center space-x-4">
                 <Link
-                  href="/login"
-                  className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  href="/auth/login"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
-                  Login
+                  Sign in
                 </Link>
                 <Link
-                  href="/register"
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md text-sm font-medium"
+                  href="/auth/register"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
-                  Register
+                  Sign up
                 </Link>
               </div>
             )}
@@ -176,6 +188,16 @@ const Navbar = () => {
             >
               Services
             </Link>
+            <Link
+              href="/providers"
+              className={`${
+                router.pathname === '/providers'
+                  ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
+                  : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+              } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+            >
+              Providers
+            </Link>
             {user?.role === 'customer' && (
               <Link
                 href="/recommendations"
@@ -217,7 +239,9 @@ const Navbar = () => {
             {user ? (
               <div className="flex items-center px-4">
                 <div className="flex-shrink-0">
-                  <span className="text-gray-700">{user.name}</span>
+                  <span className="text-gray-700">
+                    Welcome, {user.first_name} {user.last_name}
+                  </span>
                 </div>
                 <div className="ml-3">
                   <button
@@ -231,16 +255,16 @@ const Navbar = () => {
             ) : (
               <div className="mt-3 space-y-1">
                 <Link
-                  href="/login"
+                  href="/auth/login"
                   className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
                 >
-                  Login
+                  Sign in
                 </Link>
                 <Link
-                  href="/register"
+                  href="/auth/register"
                   className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
                 >
-                  Register
+                  Sign up
                 </Link>
               </div>
             )}
