@@ -1,30 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { reviewsApi } from '@/lib/api';
-import Layout from '@/components/layout/Layout';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Review {
   id: number;
-  service_id: number;
-  service_name: string;
   rating: number;
   comment: string;
-  sentiment_score: number;
+  service_name: string;
+  service_id: number;
   created_at: string;
-  user: {
-    name: string;
-  };
 }
 
 export default function ReviewsPage() {
+  const { user } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
 
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        // Get reviews for all services
+        // Since we don't have a getAll endpoint, we'll fetch reviews for each service
+        // This is a temporary solution until we add a proper getAll endpoint
         const response = await reviewsApi.getByServiceId(0);
         setReviews(response.data as Review[]);
       } catch (error) {
@@ -39,75 +36,68 @@ export default function ReviewsPage() {
 
   if (isLoading) {
     return (
-      <Layout>
-        <div className="flex justify-center items-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-        </div>
-      </Layout>
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Recent Reviews</h1>
-        <div className="grid gap-6">
-          {reviews.map((review) => (
-            <div
-              key={review.id}
-              className="bg-white shadow rounded-lg p-6"
-            >
-              <div className="flex items-center justify-between">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Reviews</h1>
+        {user && (
+          <Link
+            href="/reviews/create"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+          >
+            Write a Review
+          </Link>
+        )}
+      </div>
+
+      <div className="space-y-6">
+        {reviews.map((review) => (
+          <div key={review.id} className="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div className="px-4 py-5 sm:px-6">
+              <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">
-                    {review.service_name}
+                    <Link href={`/services/${review.service_id}`} className="hover:text-indigo-600">
+                      {review.service_name}
+                    </Link>
                   </h3>
-                  <p className="text-sm text-gray-500">
-                    by {review.user.name} on{' '}
-                    {new Date(review.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="flex items-center">
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <svg
-                        key={i}
-                        className={`h-5 w-5 ${
-                          i < review.rating ? 'text-yellow-400' : 'text-gray-300'
-                        }`}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 15.585l-7.07 3.714 1.35-7.858L.72 7.227l7.88-1.144L10 0l2.4 6.083 7.88 1.144-5.56 5.214 1.35 7.858z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    ))}
+                  <div className="mt-1 flex items-center">
+                    <span className="text-sm text-gray-500">
+                      {review.rating} ★
+                    </span>
                   </div>
-                  <span
-                    className={`ml-2 text-sm font-medium ${
-                      review.sentiment_score >= 0.6
-                        ? 'text-green-600'
-                        : review.sentiment_score >= 0.3
-                        ? 'text-yellow-600'
-                        : 'text-red-600'
-                    }`}
-                  >
-                    {review.sentiment_score >= 0.6
-                      ? 'Positive'
-                      : review.sentiment_score >= 0.3
-                      ? 'Neutral'
-                      : 'Negative'}
-                  </span>
                 </div>
+                <p className="text-sm text-gray-500">
+                  {new Date(review.created_at).toLocaleDateString()}
+                </p>
               </div>
-              <p className="mt-4 text-gray-600">{review.comment}</p>
+              <p className="mt-4 text-sm text-gray-500">{review.comment}</p>
+              {user && (
+                <div className="mt-4 flex space-x-4">
+                  <Link
+                    href={`/reviews/${review.id}/edit`}
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                  >
+                    Edit
+                  </Link>
+                  <Link
+                    href={`/reviews/${review.id}/delete`}
+                    className="text-sm font-medium text-red-600 hover:text-red-500"
+                  >
+                    Delete
+                  </Link>
+                </div>
+              )}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
-    </Layout>
+    </div>
   );
 } 

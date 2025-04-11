@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Body
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr
@@ -40,6 +40,10 @@ class UserCreate(BaseModel):
     role: str
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 
 class UserResponse(BaseModel):
     user_id: int
@@ -88,12 +92,28 @@ async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
 
 async def authenticate_user(db: AsyncSession, email: str, password: str) -> Optional[User]:
     """Authenticate a user with email and password"""
-    user = await get_user_by_email(db, email)
-    
-    if not user or not verify_password(password, user.password_hash):
-        return None
-    
-    return user
+    try:
+        print(f"Attempting to find user with email: {email}")
+        result = await db.execute(
+            select(User).where(User.email == email)
+        )
+        user = result.scalar_one_or_none()
+        
+        if not user:
+            print(f"User not found with email: {email}")
+            return None
+            
+        print(f"User found: {user.email}")
+        
+        if not verify_password(password, user.password_hash):
+            print(f"Password verification failed for user: {email}")
+            return None
+            
+        print(f"Password verified for user: {email}")
+        return user
+    except Exception as e:
+        print(f"Error in authenticate_user: {str(e)}")
+        raise
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)) -> User:
@@ -210,28 +230,70 @@ async def register_new_user(
 
 @router.post("/login", response_model=Token)
 async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(), 
+    login_data: LoginRequest = Body(...),
     db: AsyncSession = Depends(get_db)
 ):
     """Login and get access token"""
-    user = await authenticate_user(db, form_data.username, form_data.password)
-    
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": str(user.user_id), "role": user.role},
-        expires_delta=access_token_expires,
-    )
+    try:
+        # Handle both JSON and form-urlencoded data
+        if isinstance(login_data, dict):
+            email = login_data.get("username") or login_data.get("email")
+            password = login_data.get("password")
+            if not email or not password:
+                print(f"Missing credentials in form data: {login_data}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Email and password are required",
+                )
+        else:
+            email = login_data.email
+            password = login_data.password
+        
+        print(f"Attempting to authenticate user: {email}")
+        
+        try:
+            user = await authenticate_user(db, email, password)
+        except Exception as e:
+            print(f"Error during authentication: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Authentication error",
+            )
+        
+        if not user:
+            print(f"Authentication failed for user: {email}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        print(f"User authenticated successfully: {email}")
+        
+        try:
+            access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            access_token = create_access_token(
+                data={"sub": str(user.user_id), "role": user.role},
+                expires_delta=access_token_expires,
+            )
+        except Exception as e:
+            print(f"Error creating access token: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error creating access token",
+            )
 
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user_id": user.user_id,
-        "role": user.role
-    }
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user_id": user.user_id,
+            "role": user.role
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Unexpected error during login: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred during login",
+        )

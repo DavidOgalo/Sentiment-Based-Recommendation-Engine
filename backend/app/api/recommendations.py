@@ -48,7 +48,8 @@ async def get_recommendations(
     query = select(
         Service,
         func.avg(Review.rating).label("average_rating"),
-        func.avg(Review.sentiment_score).label("avg_sentiment")
+        func.avg(Review.sentiment_score).label("avg_sentiment"),
+        func.count(Review.review_id).label("review_count")
     ).join(
         Review, Service.service_id == Review.service_id, isouter=True
     ).filter(
@@ -61,37 +62,26 @@ async def get_recommendations(
     if category_id:
         query = query.filter(Service.category_id == category_id)
     
-    if min_rating:
-        # Fix: Only filter by min_rating if there are reviews
-        query = query.having(
-            func.coalesce(func.avg(Review.rating), 0) >= min_rating
-        )
-    
-    # Note: We'll handle max_price filter after getting the results,
-    # since price_range is a JSONB field that needs special handling
-    
     # Execute the query
     result = await db.execute(query)
     services = result.all()
     
     # Get user's previous interactions (reviews)
-    user_reviews = set()
-    if not include_reviewed:
-        user_reviews = await db.execute(
-            select(Review.service_id).filter(Review.user_id == current_user.user_id)
-        )
-        user_reviews = {r[0] for r in user_reviews}
+    user_reviews_query = await db.execute(
+        select(Review).filter(Review.user_id == current_user.user_id)
+    )
+    user_reviews = user_reviews_query.scalars().all()
     
     # Calculate preferred categories based on user's previous positive reviews
     category_preferences = {}
     
     for review in user_reviews:
-        service = await db.execute(select(Service).filter(Service.service_id == review))
+        service = await db.execute(select(Service).filter(Service.service_id == review.service_id))
         service = service.scalar_one_or_none()
         
         if service and service.category_id:
             # Weigh preference by rating and sentiment
-            preference_score = (review / 5.0) * (max(0, service.sentiment_score) if service.sentiment_score else 0.5)
+            preference_score = (review.rating / 5.0) * (max(0, review.sentiment_score) if review.sentiment_score else 0.5)
             
             if service.category_id in category_preferences:
                 category_preferences[service.category_id] += preference_score
@@ -101,9 +91,9 @@ async def get_recommendations(
     # Calculate recommendation score for each service
     recommendations = []
     
-    for service, avg_rating, avg_sentiment in services:
+    for service, avg_rating, avg_sentiment, review_count in services:
         # Skip reviewed services unless include_reviewed is True
-        if not include_reviewed and service.service_id in user_reviews:
+        if not include_reviewed and any(r.service_id == service.service_id for r in user_reviews):
             continue
             
         # Apply price filter manually (since we can't do it easily in the SQL query)
@@ -126,11 +116,18 @@ async def get_recommendations(
                 # If we can't parse the price, we'll include the service anyway
                 pass
         
+        # Apply min_rating filter after getting the results
+        if min_rating and avg_rating and avg_rating < min_rating:
+            continue
+        
         # Base score is average rating (normalize to 0-1)
         base_score = float(avg_rating) / 5.0 if avg_rating else 0.5
         
         # Sentiment factor (normalize to 0-1, with 0.5 being neutral)
         sentiment_factor = (float(avg_sentiment) + 1) / 2 if avg_sentiment is not None else 0.5
+        
+        # Review count factor (boost services with more reviews)
+        review_factor = min(review_count / 10, 1.0) if review_count else 0.5
         
         # Category preference factor
         category_factor = 1.0
@@ -139,7 +136,7 @@ async def get_recommendations(
             category_factor = 1.0 + (category_preferences[service.category_id] * 0.5)
         
         # Calculate final recommendation score
-        recommendation_score = base_score * sentiment_factor * category_factor
+        recommendation_score = base_score * sentiment_factor * review_factor * category_factor
         
         # Get provider name
         provider_query = await db.execute(

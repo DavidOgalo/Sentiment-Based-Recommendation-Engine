@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       setError(null);
-      const response = await authApi.login({ email, password });
+      const response = await authApi.login({ username: email, password });
       const authData = response.data as AuthResponse;
       localStorage.setItem('token', authData.token);
       setUser(authData.user);
@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const authData = response.data as AuthResponse;
       localStorage.setItem('token', authData.token);
       setUser(authData.user);
-      await login(data.email, data.password);
+      router.push('/');
     } catch (error: any) {
       console.error('Registration failed:', error);
       setError(error.response?.data?.detail || 'Registration failed');
