@@ -1,79 +1,204 @@
 {
   "reviews": [
     {
-      "service_id": 1,
       "rating": 5,
-      "comment": "Excellent basic wash service! The staff was friendly and efficient. My car looked spotless after the wash."
+      "comment": "Excellent service! My car has never looked better. The staff was professional and thorough."
     },
     {
-      "service_id": 1,
       "rating": 4,
-      "comment": "Good service overall. The basic wash was thorough and reasonably priced."
+      "comment": "Good wash overall, but they missed a few spots on the lower parts of the car."
     },
     {
-      "service_id": 2,
       "rating": 5,
-      "comment": "The interior cleaning was exceptional! They paid attention to every detail and my car's interior looks brand new."
+      "comment": "The ceramic coating is amazing! Water beads right off and the shine is incredible."
     },
     {
-      "service_id": 3,
-      "rating": 4,
-      "comment": "Engine bay cleaning was thorough. The protective coating looks good and should help prevent future buildup."
-    },
-    {
-      "service_id": 4,
-      "rating": 5,
-      "comment": "Great undercarriage protection service. The rust prevention treatment was professionally applied."
-    },
-    {
-      "service_id": 5,
-      "rating": 5,
-      "comment": "The full detail package was worth every penny! My car looks better than when I bought it."
-    },
-    {
-      "service_id": 6,
-      "rating": 4,
-      "comment": "Paint correction and waxing were done professionally. The shine is impressive."
-    },
-    {
-      "service_id": 7,
-      "rating": 5,
-      "comment": "Headlight restoration worked wonders! My headlights are now crystal clear and properly sealed."
-    },
-    {
-      "service_id": 8,
-      "rating": 4,
-      "comment": "Tire and wheel package was thorough. The tire dressing looks great and should last."
-    },
-    {
-      "service_id": 9,
       "rating": 3,
-      "comment": "Express wash was quick but could have been more thorough. Wax application was good though."
+      "comment": "Decent wash but took longer than expected. The waiting area could use some improvements."
     },
     {
-      "service_id": 10,
       "rating": 5,
-      "comment": "Deep interior cleaning was amazing! The steam treatment removed all stains and odors."
+      "comment": "Best detailing service I've ever used. Attention to detail is outstanding."
     },
     {
-      "service_id": 1,
       "rating": 2,
-      "comment": "Disappointed with the service. The wash was rushed and missed several spots."
+      "comment": "Disappointed with the interior cleaning. Some stains were still visible after service."
     },
     {
-      "service_id": 2,
-      "rating": 3,
-      "comment": "Interior cleaning was okay but took longer than expected. Some areas were missed."
-    },
-    {
-      "service_id": 5,
-      "rating": 4,
-      "comment": "Good detailing service overall. The ceramic coating application was professional."
-    },
-    {
-      "service_id": 8,
       "rating": 5,
-      "comment": "Excellent tire and wheel service! The brake dust was completely removed."
+      "comment": "Worth every penny! My 10-year-old car looks brand new after the paint correction."
+    },
+    {
+      "rating": 4,
+      "comment": "Great service overall. The headlight restoration made a huge difference in visibility."
+    },
+    {
+      "rating": 5,
+      "comment": "Friendly staff and excellent results. Will definitely be coming back regularly."
+    },
+    {
+      "rating": 1,
+      "comment": "Terrible experience. They scratched my rims during the wheel cleaning."
+    },
+    {
+      "rating": 5,
+      "comment": "The leather conditioning brought my seats back to life. Amazing transformation!"
+    },
+    {
+      "rating": 4,
+      "comment": "Good value for money. The undercarriage wash removed all the winter salt buildup."
+    },
+    {
+      "rating": 5,
+      "comment": "Mobile service was so convenient! The detailer came to my office and did an amazing job."
+    },
+    {
+      "rating": 3,
+      "comment": "Average wash. Nothing special but gets the job done."
+    },
+    {
+      "rating": 5,
+      "comment": "Eco-friendly wash worked great! Can't believe they use so little water for such good results."
+    },
+    {
+      "rating": 4,
+      "comment": "Quick and efficient service. Perfect for my weekly wash needs."
+    },
+    {
+      "rating": 5,
+      "comment": "The odor removal treatment completely eliminated the smoke smell from my car. Miracle workers!"
+    },
+    {
+      "rating": 2,
+      "comment": "Not happy with the results. The clay bar treatment left some residue on my paint."
+    },
+    {
+      "rating": 5,
+      "comment": "Professional and knowledgeable staff. They explained every step of the process."
+    },
+    {
+      "rating": 4,
+      "comment": "Great wash but the dryers could be more powerful to prevent water spots."
+    },
+    {
+      "rating": 5,
+      "comment": "My convertible top looks brand new after their specialized treatment."
+    },
+    {
+      "rating": 3,
+      "comment": "Service was okay but the price seems a bit high for what you get."
+    },
+    {
+      "rating": 5,
+      "comment": "The RV wash was perfect! They got into all the nooks and crannies."
+    },
+    {
+      "rating": 4,
+      "comment": "Consistent quality every time I visit. My go-to car wash."
+    },
+    {
+      "rating": 5,
+      "comment": "The wheel detailing removed years of brake dust buildup. Amazing!"
+    },
+    {
+      "rating": 1,
+      "comment": "Worst car wash ever. They left swirl marks all over my black paint."
+    },
+    {
+      "rating": 5,
+      "comment": "The pet hair removal service saved my interior from my shedding dogs. Lifesaver!"
+    },
+    {
+      "rating": 4,
+      "comment": "Good express service when you're in a hurry. Could use more vacuum stations though."
+    },
+    {
+      "rating": 5,
+      "comment": "The waterless wash is perfect for California droughts. Great results with no water waste."
+    },
+    {
+      "rating": 3,
+      "comment": "Interior refresh was decent but didn't completely remove all the stains."
+    },
+    {
+      "rating": 5,
+      "comment": "Exterior quick detail gave my car an amazing shine in just 30 minutes!"
+    },
+    {
+      "rating": 4,
+      "comment": "Friendly staff and good service. The waiting area has nice amenities."
+    },
+    {
+      "rating": 5,
+      "comment": "The engine bay cleaning made my car look like it just came from the factory."
+    },
+    {
+      "rating": 2,
+      "comment": "Ceramic coating application was uneven in some areas. Disappointed for the price."
+    },
+    {
+      "rating": 5,
+      "comment": "Best hand wash in town! They treat your car like it's their own."
+    },
+    {
+      "rating": 4,
+      "comment": "Gold package is a good value. Car looks great inside and out."
+    },
+    {
+      "rating": 5,
+      "comment": "Paint correction removed years of swirls and scratches. Looks showroom new!"
+    },
+    {
+      "rating": 3,
+      "comment": "Headlight restoration helped but could be better. Still some haze remaining."
+    },
+    {
+      "rating": 5,
+      "comment": "The full interior detailing was worth every penny. Smells and looks brand new."
+    },
+    {
+      "rating": 4,
+      "comment": "Good basic wash. Nothing fancy but gets the job done at a fair price."
+    },
+    {
+      "rating": 5,
+      "comment": "The leather quick clean made a noticeable difference in just 30 minutes!"
+    },
+    {
+      "rating": 1,
+      "comment": "Avoid this place! They damaged my antenna during the wash."
+    },
+    {
+      "rating": 5,
+      "comment": "The premium detail package transformed my car completely. Amazing work!"
+    },
+    {
+      "rating": 4,
+      "comment": "Ceramic boost maintained my coating beautifully. Quick and effective."
+    },
+    {
+      "rating": 5,
+      "comment": "Single stage polish brought back the deep gloss to my paint. Stunning results!"
+    },
+    {
+      "rating": 3,
+      "comment": "Wheel detailing was okay but didn't remove all the stubborn brake dust."
+    },
+    {
+      "rating": 5,
+      "comment": "Pet hair removal service worked perfectly. Not a single hair left!"
+    },
+    {
+      "rating": 4,
+      "comment": "Interior refresh was quick and effective. Pleasant citrus scent afterwards."
+    },
+    {
+      "rating": 5,
+      "comment": "The exterior quick detail gave my car an amazing shine for an important event."
+    },
+    {
+      "rating": 2,
+      "comment": "Waterless wash left some streaks. Had to rewash at home."
     }
   ]
-} 
+}

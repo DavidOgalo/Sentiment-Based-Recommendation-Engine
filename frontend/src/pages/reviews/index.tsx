@@ -1,102 +1,119 @@
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { reviewsApi } from '@/lib/api';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-
-interface Review {
-  id: number;
-  rating: number;
-  comment: string;
-  service_name: string;
-  service_id: number;
-  created_at: string;
-}
+import { reviewsApi } from '@/lib/api';
+import { Review } from '@/lib/api';
+import { Spinner } from '@/components/common/Spinner';
+import { ErrorMessage } from '@/components/common/ErrorMessage';
+import { ReviewCard } from '@/components/reviews/ReviewCard';
+import { CreateReviewForm } from '@/components/reviews/CreateReviewForm';
 
 export default function ReviewsPage() {
   const { user } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        // Since we don't have a getAll endpoint, we'll fetch reviews for each service
-        // This is a temporary solution until we add a proper getAll endpoint
-        const response = await reviewsApi.getByServiceId(0);
-        setReviews(response.data as Review[]);
-      } catch (error) {
-        console.error('Failed to fetch reviews:', error);
+        setIsLoading(true);
+        setError(null);
+        const response = await reviewsApi.getUserReviews();
+        setReviews(response);
+      } catch (err: any) {
+        setError(err.message || 'Failed to load reviews');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchReviews();
-  }, []);
+    if (user) {
+      fetchReviews();
+    }
+  }, [user]);
+
+  const handleCreateReview = async (data: { service_id: number; rating: number; comment: string }) => {
+    try {
+      const newReview = await reviewsApi.create(data);
+      setReviews(prev => [newReview, ...prev]);
+      setShowCreateForm(false);
+    } catch (err: any) {
+      setError(err.message || 'Failed to create review');
+    }
+  };
+
+  const handleDeleteReview = async (reviewId: number) => {
+    try {
+      await reviewsApi.delete(reviewId);
+      setReviews(prev => prev.filter(review => review.review_id !== reviewId));
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete review');
+    }
+  };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Please sign in to view reviews</h2>
+          <p className="text-gray-600">Sign in to view and manage your reviews.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <ErrorMessage message={error} />
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Reviews</h1>
-        {user && (
-          <Link
-            href="/reviews/create"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
-          >
-            Write a Review
-          </Link>
-        )}
+        <h1 className="text-3xl font-bold text-gray-900">Your Reviews</h1>
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          Write a Review
+        </button>
       </div>
 
+      {showCreateForm && (
+        <div className="mb-8">
+          <CreateReviewForm
+            onSubmit={handleCreateReview}
+            onCancel={() => setShowCreateForm(false)}
+          />
+        </div>
+      )}
+
       <div className="space-y-6">
-        {reviews.map((review) => (
-          <div key={review.id} className="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">
-                    <Link href={`/services/${review.service_id}`} className="hover:text-indigo-600">
-                      {review.service_name}
-                    </Link>
-                  </h3>
-                  <div className="mt-1 flex items-center">
-                    <span className="text-sm text-gray-500">
-                      {review.rating} ★
-                    </span>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-500">
-                  {new Date(review.created_at).toLocaleDateString()}
-                </p>
-              </div>
-              <p className="mt-4 text-sm text-gray-500">{review.comment}</p>
-              {user && (
-                <div className="mt-4 flex space-x-4">
-                  <Link
-                    href={`/reviews/${review.id}/edit`}
-                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                  >
-                    Edit
-                  </Link>
-                  <Link
-                    href={`/reviews/${review.id}/delete`}
-                    className="text-sm font-medium text-red-600 hover:text-red-500"
-                  >
-                    Delete
-                  </Link>
-                </div>
-              )}
-            </div>
+        {reviews.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500">You haven't written any reviews yet.</p>
           </div>
-        ))}
+        ) : (
+          reviews.map((review) => (
+            <ReviewCard
+              key={review.review_id}
+              review={review}
+              onDelete={handleDeleteReview}
+            />
+          ))
+        )}
       </div>
     </div>
   );

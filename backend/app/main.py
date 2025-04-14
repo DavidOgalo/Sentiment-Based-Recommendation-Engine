@@ -1,9 +1,15 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app.api import auth, users, providers, services, reviews, recommendations
-from backend.app.models.database import get_db
+from backend.app.api import auth, users, providers, services, reviews, recommendations, categories
+from backend.app.models.database import get_db, init_db
 from dotenv import load_dotenv
 import os
+from sqlalchemy import text
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -18,6 +24,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
 # Include API routes
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(users.router, prefix="/users", tags=["Users"])
@@ -25,6 +36,7 @@ app.include_router(providers.router, prefix="/providers", tags=["Service Provide
 app.include_router(services.router, prefix="/services", tags=["Services"])
 app.include_router(reviews.router, prefix="/reviews", tags=["Reviews"])
 app.include_router(recommendations.router, prefix="/recommendations", tags=["Recommendations"])
+app.include_router(categories.router, prefix="/categories", tags=["Categories"])
 
 @app.get("/")
 def read_root():
@@ -45,16 +57,8 @@ async def get_routes():
 async def startup_event():
     """Test database connection on startup"""
     try:
-        # Test the database connection
-        async for session in get_db():
-            try:
-                await session.execute("SELECT 1")
-                print("Database connection successful!")
-                break
-            except Exception as e:
-                print(f"Database connection test failed: {str(e)}")
-                raise
-            finally:
-                await session.close()
+        await init_db()
+        logger.info("Database initialized successfully")
     except Exception as e:
-        print(f"Failed to connect to database on startup: {str(e)}")
+        logger.error(f"Error initializing database: {str(e)}")
+        raise

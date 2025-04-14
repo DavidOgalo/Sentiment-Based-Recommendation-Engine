@@ -1,39 +1,46 @@
 {
   "providers": [
     {
-      "email": "autobellcarwash@provider.com",
-      "password": "ProviderPass123!",
+      "email": "premiumwash@provider.com",
+      "password": "Provider123!",
       "role": "provider",
-      "first_name": "Robert",
+      "first_name": "James",
       "last_name": "Wilson"
     },
     {
-      "email": "tommyexpresscarwash@provider.com",
-      "password": "ProviderPass123!",
+      "email": "elitedetail@provider.com",
+      "password": "Provider123!",
       "role": "provider",
       "first_name": "Sarah",
+      "last_name": "Johnson"
+    },
+    {
+      "email": "quickclean@provider.com",
+      "password": "Provider123!",
+      "role": "provider",
+      "first_name": "Michael",
       "last_name": "Brown"
     },
     {
-      "email": "modwash@provider.com",
-      "password": "ProviderPass123!",
+      "email": "sparklecar@provider.com",
+      "password": "Provider123!",
       "role": "provider",
-      "first_name": "David",
+      "first_name": "Jennifer",
       "last_name": "Lee"
     },
     {
-      "email": "luxedetailing@provider.com",
-      "password": "ProviderPass123!",
+      "email": "autoshine@provider.com",
+      "password": "Provider123!",
       "role": "provider",
-      "first_name": "Anthony",
-      "last_name": "Mulili"
+      "first_name": "David",
+      "last_name": "Miller"
     },
     {
-      "email": "elitecarwash@provider.com",
-      "password": "ProviderPass123!",
+      "email": "crystalwash@provider.com",
+      "password": "Provider123!",
       "role": "provider",
-      "first_name": "Michael",
-      "last_name": "Chen"
+      "first_name": "Amanda",
+      "last_name": "Taylor"
     }
   ]
-} 
+}

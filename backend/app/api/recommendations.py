@@ -35,7 +35,7 @@ class ServiceRecommendation(BaseModel):
 async def get_recommendations(
     limit: int = Query(10, ge=1, le=50),
     category_id: Optional[int] = None,
-    min_rating: Optional[float] = Query(None, ge=1, le=5),
+    min_rating: Optional[float] = Query(0, ge=0, le=5),
     max_price: Optional[float] = None,
     include_reviewed: bool = False,
     db: AsyncSession = Depends(get_db),
@@ -117,7 +117,7 @@ async def get_recommendations(
                 pass
         
         # Apply min_rating filter after getting the results
-        if min_rating and avg_rating and avg_rating < min_rating:
+        if min_rating > 0 and avg_rating and avg_rating < min_rating:
             continue
         
         # Base score is average rating (normalize to 0-1)
@@ -132,47 +132,49 @@ async def get_recommendations(
         # Category preference factor
         category_factor = 1.0
         if service.category_id in category_preferences:
-            # Boost score for preferred categories
-            category_factor = 1.0 + (category_preferences[service.category_id] * 0.5)
+            # Normalize category preference score
+            max_preference = max(category_preferences.values()) if category_preferences else 1
+            category_factor = category_preferences[service.category_id] / max_preference
         
         # Calculate final recommendation score
-        recommendation_score = base_score * sentiment_factor * review_factor * category_factor
-        
-        # Get provider name
-        provider_query = await db.execute(
-            select(ServiceProvider).filter(ServiceProvider.provider_id == service.provider_id)
+        # Weights: base_score (40%), sentiment_factor (30%), review_factor (20%), category_factor (10%)
+        recommendation_score = (
+            base_score * 0.4 +
+            sentiment_factor * 0.3 +
+            review_factor * 0.2 +
+            category_factor * 0.1
         )
-        provider = provider_query.scalar_one_or_none()
-        provider_name = provider.business_name if provider else "Unknown Provider"
         
-        # Get category name
-        category_name = None
-        if service.category_id:
-            category_query = await db.execute(
-                select(ServiceCategory).filter(ServiceCategory.category_id == service.category_id)
-            )
-            category = category_query.scalar_one_or_none()
-            category_name = category.name if category else None
+        # Get provider and category details
+        provider = await db.execute(
+            select(ServiceProvider)
+            .filter(ServiceProvider.provider_id == service.provider_id)
+        )
+        provider = provider.scalar_one_or_none()
         
-        # Add to recommendations
+        category = await db.execute(
+            select(ServiceCategory)
+            .filter(ServiceCategory.category_id == service.category_id)
+        )
+        category = category.scalar_one_or_none()
+        
         recommendations.append({
             "service_id": service.service_id,
             "name": service.name,
             "description": service.description,
             "provider_id": service.provider_id,
-            "provider_name": provider_name,
+            "provider_name": provider.business_name if provider else "Unknown",
             "category_id": service.category_id,
-            "category_name": category_name,
+            "category_name": category.name if category else "Unknown",
             "average_rating": float(avg_rating) if avg_rating else 0.0,
             "sentiment_score": float(avg_sentiment) if avg_sentiment else None,
             "recommendation_score": recommendation_score,
             "price_range": service.price_range
         })
     
-    # Sort by recommendation score (highest first)
+    # Sort by recommendation score in descending order
     recommendations.sort(key=lambda x: x["recommendation_score"], reverse=True)
     
-    # Limit results
     return recommendations[:limit]
 
 # Get trending services

@@ -9,6 +9,7 @@ from backend.app.models.database import get_db
 from backend.app.models.models import Service, ServiceProvider, User, ServiceCategory
 from backend.app.api.auth import get_current_active_user, get_admin_user
 from sqlalchemy import or_
+from sqlalchemy.types import Float
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -61,49 +62,72 @@ async def create_service(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
-    # Check if user is a provider
-    if current_user.role != "provider":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only providers can create services"
+    """Create a new service"""
+    try:
+        # Check if user is a provider
+        if current_user.role != "provider":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only providers can create services"
+            )
+        
+        # Get the provider profile and check verification
+        provider = await db.execute(
+            select(ServiceProvider)
+            .filter(ServiceProvider.user_id == current_user.user_id)
         )
-    
-    # Get the provider profile and check verification
-    provider = await db.execute(
-        select(ServiceProvider)
-        .filter(ServiceProvider.user_id == current_user.user_id)
-    )
-    provider = provider.scalar_one_or_none()
-    
-    if not provider:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Provider profile not found. Please create a provider profile first."
+        provider = provider.scalar_one_or_none()
+        
+        if not provider:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Provider profile not found. Please create a provider profile first."
+            )
+        
+        if not provider.is_verified:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Provider must be verified before creating services"
+            )
+
+        # Validate category exists
+        category = await db.execute(
+            select(ServiceCategory)
+            .filter(ServiceCategory.category_id == service.category_id)
         )
-    
-    if not provider.is_verified:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Provider must be verified before creating services"
+        if not category.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Service category not found"
+            )
+        
+        # Create new service
+        new_service = Service(
+            provider_id=provider.provider_id,
+            **service.dict()
         )
-    
-    # Create new service
-    new_service = Service(
-        provider_id=provider.provider_id,
-        **service.dict()
-    )
-    
-    db.add(new_service)
-    await db.commit()
-    await db.refresh(new_service)
-    
-    return new_service
+        
+        db.add(new_service)
+        await db.commit()
+        await db.refresh(new_service)
+        
+        return new_service
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating service: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create service"
+        )
 
 @router.get("/", response_model=List[ServiceResponse])
 async def list_services(
     db: AsyncSession = Depends(get_db),
     search: Optional[str] = None,
     category_id: Optional[int] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
     skip: int = 0,
     limit: int = 100
 ):
@@ -116,9 +140,18 @@ async def list_services(
 
         # Apply filters
         if search:
-            stmt = stmt.where(Service.name.ilike(f"%{search}%"))
+            stmt = stmt.where(
+                or_(
+                    Service.name.ilike(f"%{search}%"),
+                    ServiceProvider.business_name.ilike(f"%{search}%")
+                )
+            )
         if category_id:
             stmt = stmt.where(Service.category_id == category_id)
+        if min_price is not None:
+            stmt = stmt.where(Service.price_range['min'].astext.cast(Float) >= min_price)
+        if max_price is not None:
+            stmt = stmt.where(Service.price_range['max'].astext.cast(Float) <= max_price)
 
         # Apply pagination
         stmt = stmt.offset(skip).limit(limit)
@@ -234,3 +267,34 @@ async def create_category(
     await db.commit()
     await db.refresh(new_category)
     return new_category
+
+@router.get("/provider/{provider_id}", response_model=List[ServiceResponse])
+async def get_services_by_provider(
+    provider_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """Get all services for a specific provider"""
+    try:
+        # Build the query
+        stmt = select(Service, ServiceCategory.name.label('category_name'), ServiceProvider.business_name.label('provider_name'))
+        stmt = stmt.join(ServiceCategory, Service.category_id == ServiceCategory.category_id)
+        stmt = stmt.join(ServiceProvider, Service.provider_id == ServiceProvider.provider_id)
+        stmt = stmt.where(Service.provider_id == provider_id)
+
+        # Execute the query
+        result = await db.execute(stmt)
+        services = result.all()
+
+        # Format the response
+        formatted_services = []
+        for service, category_name, provider_name in services:
+            service_dict = service.__dict__
+            service_dict['category_name'] = category_name
+            service_dict['provider_name'] = provider_name
+            service_dict['average_rating'] = service.average_rating or 0.0
+            formatted_services.append(service_dict)
+
+        return formatted_services
+    except Exception as e:
+        logger.error(f"Error fetching provider services: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch provider services")

@@ -186,3 +186,18 @@ async def toggle_user_status(
     await db.commit()
     await db.refresh(user)
     return user
+
+# Get basic user details (for reviews)
+@router.get("/{user_id}/basic", response_model=UserResponse)
+async def get_user_basic(user_id: int, db: AsyncSession = Depends(get_db)):
+    """Fetch basic user details (no admin required)"""
+    result = await db.execute(select(User).filter(User.user_id == user_id))
+    user = result.scalars().first()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    return user

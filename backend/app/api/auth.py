@@ -10,12 +10,18 @@ from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.models.database import get_db
 from backend.app.models.models import User
+import bcrypt
 
 # Security configuration
 from backend.app.core.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
 # Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto",
+    bcrypt__rounds=12,
+    bcrypt__ident="2b"
+)
 
 # OAuth2 token scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -42,7 +48,7 @@ class UserCreate(BaseModel):
     last_name: Optional[str] = None
 
 class LoginRequest(BaseModel):
-    email: str
+    username: str
     password: str
 
 class UserResponse(BaseModel):
@@ -62,12 +68,20 @@ class UserResponse(BaseModel):
 # Helper functions
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against a hash"""
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception as e:
+        print(f"Error verifying password: {str(e)}")
+        return False
 
 
 def get_password_hash(password: str) -> str:
     """Generate a password hash"""
-    return pwd_context.hash(password)
+    try:
+        return pwd_context.hash(password)
+    except Exception as e:
+        print(f"Error hashing password: {str(e)}")
+        raise
 
 
 def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
@@ -229,71 +243,67 @@ async def register_new_user(
 
 
 @router.post("/login", response_model=Token)
-async def login_for_access_token(
+async def login(
     login_data: LoginRequest = Body(...),
     db: AsyncSession = Depends(get_db)
 ):
-    """Login and get access token"""
+    """Login endpoint"""
     try:
         # Handle both JSON and form-urlencoded data
         if isinstance(login_data, dict):
             email = login_data.get("username") or login_data.get("email")
             password = login_data.get("password")
             if not email or not password:
-                print(f"Missing credentials in form data: {login_data}")
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Email and password are required",
                 )
         else:
-            email = login_data.email
+            email = login_data.username
             password = login_data.password
         
-        print(f"Attempting to authenticate user: {email}")
-        
-        try:
-            user = await authenticate_user(db, email, password)
-        except Exception as e:
-            print(f"Error during authentication: {str(e)}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Authentication error",
-            )
+        # Find user by email
+        result = await db.execute(
+            select(User).filter(User.email == email)
+        )
+        user = result.scalar_one_or_none()
         
         if not user:
-            print(f"Authentication failed for user: {email}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect email or password",
-                headers={"WWW-Authenticate": "Bearer"},
+                detail="Incorrect email or password"
             )
         
-        print(f"User authenticated successfully: {email}")
-        
-        try:
-            access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-            access_token = create_access_token(
-                data={"sub": str(user.user_id), "role": user.role},
-                expires_delta=access_token_expires,
-            )
-        except Exception as e:
-            print(f"Error creating access token: {str(e)}")
+        if not verify_password(password, user.password_hash):
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Error creating access token",
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password"
             )
-
+        
+        # Update last login
+        user.last_login = datetime.utcnow()
+        await db.commit()
+        
+        # Create access token
+        access_token = create_access_token(
+            data={"sub": str(user.user_id), "role": user.role}
+        )
+        
         return {
             "access_token": access_token,
             "token_type": "bearer",
             "user_id": user.user_id,
             "role": user.role
         }
-    except HTTPException:
-        raise
     except Exception as e:
-        print(f"Unexpected error during login: {str(e)}")
+        print(f"Login error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred during login",
+            detail="An error occurred during login"
         )
+
+
+@router.post("/logout")
+async def logout():
+    """Logout the current user"""
+    return {"message": "Successfully logged out"}

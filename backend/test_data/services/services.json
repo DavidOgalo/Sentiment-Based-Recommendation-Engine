@@ -1,104 +1,204 @@
 {
   "services": [
     {
-      "name": "Basic Exterior Wash",
-      "description": "Complete exterior wash with soap and water, tire cleaning, and basic drying",
+      "name": "Basic General Wash",
+      "description": "Standard exterior wash with interior vacuum",
       "price_range": {
-        "min": 15.00,
-        "max": 25.00
+        "min": 20.00,
+        "max": 30.00
       },
       "duration_minutes": 30,
-      "category_id": 1
+      "category_name": "General Wash"
     },
     {
-      "name": "Premium Interior Cleaning",
-      "description": "Thorough interior vacuuming, dashboard cleaning, window cleaning, and upholstery treatment",
+      "name": "Premium Exterior Wash",
+      "description": "Complete exterior wash with hand drying and spot-free rinse",
+      "price_range": {
+        "min": 35.00,
+        "max": 45.00
+      },
+      "duration_minutes": 45,
+      "category_name": "Exterior Car Washing"
+    },
+    {
+      "name": "Deluxe Interior Cleaning",
+      "description": "Thorough interior vacuuming, dusting, and window cleaning",
       "price_range": {
         "min": 40.00,
-        "max": 60.00
+        "max": 55.00
       },
       "duration_minutes": 60,
-      "category_id": 3
+      "category_name": "Interior Vacuuming and Cleaning"
     },
     {
-      "name": "Engine Bay Detailing",
-      "description": "Complete engine bay cleaning, degreasing, and protective coating application",
+      "name": "Engine Deep Clean",
+      "description": "Complete engine compartment degreasing and dressing",
       "price_range": {
-        "min": 50.00,
+        "min": 60.00,
         "max": 80.00
       },
       "duration_minutes": 90,
-      "category_id": 4
+      "category_name": "Engine Cleaning"
     },
     {
       "name": "Undercarriage Protection",
-      "description": "Thorough undercarriage cleaning and rust protection treatment",
+      "description": "High-pressure cleaning with rust prevention treatment",
       "price_range": {
         "min": 45.00,
-        "max": 75.00
+        "max": 60.00
       },
-      "duration_minutes": 75,
-      "category_id": 5
+      "duration_minutes": 45,
+      "category_name": "Undercarriage Cleaning"
     },
     {
-      "name": "Full Detail Package",
-      "description": "Complete interior and exterior detailing with paint correction and ceramic coating",
+      "name": "Full Detailing Package",
+      "description": "Complete interior and exterior detailing with clay bar and ceramic coating",
       "price_range": {
-        "min": 150.00,
-        "max": 250.00
+        "min": 200.00,
+        "max": 300.00
       },
       "duration_minutes": 180,
-      "category_id": 6
+      "category_name": "Car Detailing Services"
     },
     {
-      "name": "Paint Correction & Wax",
-      "description": "Professional paint correction followed by premium wax application",
+      "name": "Premium Polish & Wax",
+      "description": "Two-stage polishing followed by premium wax application",
       "price_range": {
-        "min": 100.00,
-        "max": 180.00
+        "min": 120.00,
+        "max": 160.00
       },
       "duration_minutes": 120,
-      "category_id": 7
+      "category_name": "Polishing and Waxing"
     },
     {
-      "name": "Headlight Restoration",
-      "description": "Professional headlight restoration with UV protection coating",
+      "name": "Express Wax & Buff",
+      "description": "Quick wax application with machine buffing",
       "price_range": {
-        "min": 35.00,
-        "max": 55.00
+        "min": 50.00,
+        "max": 70.00
       },
       "duration_minutes": 45,
-      "category_id": 9
+      "category_name": "Waxing and Buffing"
     },
     {
-      "name": "Tire & Wheel Package",
-      "description": "Complete tire cleaning, wheel detailing, and tire dressing application",
+      "name": "Headlight Restoration Pro",
+      "description": "Complete headlight restoration with UV protective coating",
+      "price_range": {
+        "min": 65.00,
+        "max": 85.00
+      },
+      "duration_minutes": 60,
+      "category_name": "Headlight Restoration"
+    },
+    {
+      "name": "Tire & Wheel Premium Package",
+      "description": "Deep cleaning, polishing, and ceramic coating for wheels and tires",
+      "price_range": {
+        "min": 55.00,
+        "max": 75.00
+      },
+      "duration_minutes": 60,
+      "category_name": "Tire and Rim Cleaning"
+    },
+    {
+      "name": "Leather Conditioning Treatment",
+      "description": "Specialized leather cleaning and conditioning",
+      "price_range": {
+        "min": 70.00,
+        "max": 90.00
+      },
+      "duration_minutes": 60,
+      "category_name": "Leather Conditioning"
+    },
+    {
+      "name": "Executive Wash Package",
+      "description": "Premium exterior wash with interior detailing and leather conditioning",
+      "price_range": {
+        "min": 150.00,
+        "max": 200.00
+      },
+      "duration_minutes": 120,
+      "category_name": "General Wash"
+    },
+    {
+      "name": "Waterless Exterior Wash",
+      "description": "Eco-friendly waterless wash using premium products",
       "price_range": {
         "min": 30.00,
-        "max": 50.00
+        "max": 45.00
       },
-      "duration_minutes": 45,
-      "category_id": 10
+      "duration_minutes": 30,
+      "category_name": "Exterior Car Washing"
     },
     {
-      "name": "Express Wash & Wax",
-      "description": "Quick exterior wash with basic wax application",
+      "name": "Interior Steam Cleaning",
+      "description": "Deep cleaning with steam treatment for all interior surfaces",
       "price_range": {
-        "min": 25.00,
-        "max": 40.00
+        "min": 85.00,
+        "max": 110.00
       },
-      "duration_minutes": 45,
-      "category_id": 2
+      "duration_minutes": 90,
+      "category_name": "Interior Vacuuming and Cleaning"
     },
     {
-      "name": "Interior Deep Clean",
-      "description": "Deep interior cleaning with steam treatment and odor removal",
+      "name": "Engine Bay Detailing",
+      "description": "Complete engine bay cleaning with protective dressing",
       "price_range": {
         "min": 75.00,
-        "max": 120.00
+        "max": 95.00
       },
-      "duration_minutes": 120,
-      "category_id": 3
+      "duration_minutes": 90,
+      "category_name": "Engine Cleaning"
+    },
+    {
+      "name": "Undercarriage Rust Treatment",
+      "description": "Specialized rust prevention treatment for undercarriage",
+      "price_range": {
+        "min": 65.00,
+        "max": 85.00
+      },
+      "duration_minutes": 60,
+      "category_name": "Undercarriage Cleaning"
+    },
+    {
+      "name": "Paint Correction Package",
+      "description": "Multi-stage paint correction to remove swirls and scratches",
+      "price_range": {
+        "min": 250.00,
+        "max": 350.00
+      },
+      "duration_minutes": 240,
+      "category_name": "Car Detailing Services"
+    },
+    {
+      "name": "Hand Wax Application",
+      "description": "Premium hand-applied carnauba wax",
+      "price_range": {
+        "min": 80.00,
+        "max": 100.00
+      },
+      "duration_minutes": 60,
+      "category_name": "Polishing and Waxing"
+    },
+    {
+      "name": "Quick Headlight Polish",
+      "description": "Basic headlight restoration for mildly oxidized lights",
+      "price_range": {
+        "min": 40.00,
+        "max": 55.00
+      },
+      "duration_minutes": 30,
+      "category_name": "Headlight Restoration"
+    },
+    {
+      "name": "Tire Shine Service",
+      "description": "Deep cleaning and premium tire dressing application",
+      "price_range": {
+        "min": 25.00,
+        "max": 35.00
+      },
+      "duration_minutes": 20,
+      "category_name": "Tire and Rim Cleaning"
     }
   ]
-} 
+}

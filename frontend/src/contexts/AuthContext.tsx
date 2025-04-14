@@ -40,11 +40,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (token && storedUser) {
       try {
+        authApi.setAuthToken(token);
         setUser(JSON.parse(storedUser));
       } catch (error) {
         console.error('Error parsing stored user:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        authApi.setAuthToken(null);
       }
     }
     setLoading(false);
@@ -53,7 +55,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       const response = await authApi.login({ email, password });
-      setUser(response.user);
+      
+      // Store the token
+      const token = response.access_token;
+      localStorage.setItem('token', token);
+      
+      // Update axios instance with the new token
+      authApi.setAuthToken(token);
+      
+      // Fetch user details using the token
+      const userResponse = await authApi.getCurrentUser();
+      setUser(userResponse);
+      localStorage.setItem('user', JSON.stringify(userResponse));
+      
       router.push('/');
     } catch (error) {
       console.error('Login error:', error);
@@ -67,8 +81,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      authApi.setAuthToken(null);
+      router.push('/');
     } catch (error) {
       console.error('Logout error:', error);
+      // Even if logout fails, clear local state and redirect to home
+      setUser(null);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      authApi.setAuthToken(null);
+      router.push('/');
       throw error;
     }
   };
@@ -82,8 +104,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }) => {
     try {
       const response = await authApi.register(data);
-      setUser(response.user);
-      router.push('/');
+      setUser(response);
+      localStorage.setItem('user', JSON.stringify(response));
+      router.push('/auth/login');
     } catch (error) {
       console.error('Registration error:', error);
       throw error;

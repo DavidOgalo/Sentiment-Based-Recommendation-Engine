@@ -9,6 +9,8 @@ from datetime import datetime
 from backend.app.models.database import get_db
 from backend.app.models.models import ServiceProvider, User, ServiceCategory
 from backend.app.api.auth import get_current_active_user, get_admin_user
+from sqlalchemy import or_
+import logging
 
 router = APIRouter()
 
@@ -85,15 +87,40 @@ async def create_provider(
 async def list_service_providers(
     skip: int = 0,
     limit: int = 10,
+    search: Optional[str] = None,
+    is_verified: Optional[bool] = None,
+    min_rating: Optional[float] = None,
     db: AsyncSession = Depends(get_db)
 ):
-    """List all service providers with pagination"""
-    result = await db.execute(
-        select(ServiceProvider)
-        .offset(skip)
-        .limit(limit)
-    )
-    return result.scalars().all()
+    """List all service providers with pagination and filtering"""
+    try:
+        # Build the base query
+        stmt = select(ServiceProvider)
+
+        # Apply filters
+        if search:
+            stmt = stmt.where(
+                or_(
+                    ServiceProvider.business_name.ilike(f"%{search}%"),
+                    ServiceProvider.description.ilike(f"%{search}%")
+                )
+            )
+        if is_verified is not None:
+            stmt = stmt.where(ServiceProvider.is_verified == is_verified)
+        if min_rating is not None:
+            stmt = stmt.where(ServiceProvider.average_rating >= min_rating)
+
+        # Apply pagination
+        stmt = stmt.offset(skip).limit(limit)
+
+        # Execute the query
+        result = await db.execute(stmt)
+        providers = result.scalars().all()
+
+        return providers
+    except Exception as e:
+        logger.error(f"Error listing providers: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch providers")
 
 @router.get("/{provider_id}", response_model=ProviderResponse)
 async def get_service_provider(
@@ -150,21 +177,37 @@ async def verify_service_provider(
     db: AsyncSession = Depends(get_db)
 ):
     """Verify or unverify a service provider (Admin only)"""
-    provider = await db.execute(
-        select(ServiceProvider).filter(ServiceProvider.provider_id == provider_id)
-    )
-    provider = provider.scalar_one_or_none()
-    
-    if not provider:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Service provider not found"
+    try:
+        provider = await db.execute(
+            select(ServiceProvider).filter(ServiceProvider.provider_id == provider_id)
         )
+        provider = provider.scalar_one_or_none()
+        
+        if not provider:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Service provider not found"
+            )
 
-    provider.is_verified = data.get("is_verified")
-    await db.commit()
-    await db.refresh(provider)
-    return provider
+        is_verified = data.get("is_verified")
+        if not isinstance(is_verified, bool):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="is_verified must be a boolean value"
+            )
+
+        provider.is_verified = is_verified
+        await db.commit()
+        await db.refresh(provider)
+        return provider
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error verifying provider {provider_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to verify provider"
+        )
 
 # Create category endpoint
 @router.post("/categories", response_model=CategoryResponse)
@@ -184,3 +227,20 @@ async def create_category(
     await db.commit()
     await db.refresh(new_category)
     return new_category
+
+@router.get("/user/{user_id}", response_model=ProviderResponse)
+async def get_provider_by_user_id(
+    user_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """Get a service provider by user ID"""
+    provider = await db.execute(
+        select(ServiceProvider).filter(ServiceProvider.user_id == user_id)
+    )
+    provider = provider.scalar_one_or_none()
+    if not provider:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Service provider not found"
+        )
+    return provider

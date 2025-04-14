@@ -39,6 +39,10 @@
     {
       "name": "Tire and Rim Cleaning",
       "description": "Tire cleaning to remove mud, grease, and brake dust. Polishing of rims to restore their shine. Application of tire dressing for a sleek, black finish."
+    },
+    {
+      "name": "Leather Conditioning",
+      "description": "Specialized leather cleaning and protection"
     }
   ]
 } 

@@ -1,10 +1,34 @@
 {
   "provider_profiles": [
     {
-      "business_name": "ModWash Car Wash",
-      "description": "General car wash and detailing services",
-      "contact_phone": "123-456-7890",
-      "address": "123 Main St",
+      "business_name": "Premium Wash & Detail",
+      "description": "High-end car wash and detailing services with premium products",
+      "contact_phone": "555-100-1000",
+      "address": "123 Luxury Lane, Beverly Hills, CA",
+      "latitude": 34.0676,
+      "longitude": -118.3977,
+      "business_hours": {
+        "monday": "8:00-18:00",
+        "tuesday": "8:00-18:00",
+        "wednesday": "8:00-18:00",
+        "thursday": "8:00-18:00",
+        "friday": "8:00-18:00",
+        "saturday": "9:00-15:00"
+      },
+      "services_offered": {
+        "general_wash": true,
+        "exterior_wash": true,
+        "detailing": true,
+        "polishing_waxing": true
+      }
+    },
+    {
+      "business_name": "Elite Detail Studio",
+      "description": "Professional detailing services with ceramic coatings and paint protection",
+      "contact_phone": "555-200-2000",
+      "address": "456 Detail Avenue, Santa Monica, CA",
+      "latitude": 34.0195,
+      "longitude": -118.4912,
       "business_hours": {
         "monday": "9:00-17:00",
         "tuesday": "9:00-17:00",
@@ -13,64 +37,98 @@
         "friday": "9:00-17:00"
       },
       "services_offered": {
-        "basic_wash": true,
         "detailing": true,
-        "interior_cleaning": true
+        "interior_cleaning": true,
+        "headlight_restoration": true,
+        "leather_conditioning": true
       }
     },
     {
-      "business_name": "Luxe Detailing Car Wash",
-      "description": "Premium car detailing services with professional equipment",
-      "contact_phone": "234-567-8901",
-      "address": "456 Luxury Ave",
+      "business_name": "Quick Clean Car Wash",
+      "description": "Express exterior wash services with free vacuum stations",
+      "contact_phone": "555-300-3000",
+      "address": "789 Express Blvd, Los Angeles, CA",
+      "latitude": 34.0522,
+      "longitude": -118.2437,
       "business_hours": {
-        "monday": "10:00-18:00",
-        "tuesday": "10:00-18:00",
-        "wednesday": "10:00-18:00",
-        "thursday": "10:00-18:00",
-        "friday": "10:00-18:00"
+        "monday": "7:00-19:00",
+        "tuesday": "7:00-19:00",
+        "wednesday": "7:00-19:00",
+        "thursday": "7:00-19:00",
+        "friday": "7:00-19:00",
+        "saturday": "8:00-18:00",
+        "sunday": "8:00-16:00"
       },
       "services_offered": {
-        "detailing": true,
-        "ceramic_coating": true,
-        "paint_correction": true
-      }
-    },
-    {
-      "business_name": "Autobell Car Wash",
-      "description": "Express car wash services with modern equipment",
-      "contact_phone": "345-678-9012",
-      "address": "789 Express Blvd",
-      "business_hours": {
-        "monday": "8:00-20:00",
-        "tuesday": "8:00-20:00",
-        "wednesday": "8:00-20:00",
-        "thursday": "8:00-20:00",
-        "friday": "8:00-20:00"
-      },
-      "services_offered": {
-        "basic_wash": true,
+        "general_wash": true,
+        "exterior_wash": true,
         "interior_cleaning": true,
         "tire_cleaning": true
       }
     },
     {
-      "business_name": "Elite Car Wash",
-      "description": "High-end car care services with premium products",
-      "contact_phone": "456-789-0123",
-      "address": "321 Elite Circle",
+      "business_name": "Sparkle Car Care",
+      "description": "Complete car care center with detailing and maintenance services",
+      "contact_phone": "555-400-4000",
+      "address": "321 Shine Road, West Hollywood, CA",
+      "latitude": 34.0900,
+      "longitude": -118.3617,
       "business_hours": {
-        "monday": "9:00-19:00",
-        "tuesday": "9:00-19:00",
-        "wednesday": "9:00-19:00",
-        "thursday": "9:00-19:00",
-        "friday": "9:00-19:00"
+        "monday": "8:30-17:30",
+        "tuesday": "8:30-17:30",
+        "wednesday": "8:30-17:30",
+        "thursday": "8:30-17:30",
+        "friday": "8:30-17:30"
       },
       "services_offered": {
-        "detailing": true,
         "engine_cleaning": true,
-        "undercarriage_cleaning": true
+        "undercarriage_cleaning": true,
+        "waxing_buffing": true,
+        "tire_cleaning": true
+      }
+    },
+    {
+      "business_name": "Auto Shine Professionals",
+      "description": "Mobile detailing service bringing professional care to your location",
+      "contact_phone": "555-500-5000",
+      "address": "654 Mobile Way, Culver City, CA",
+      "latitude": 34.0211,
+      "longitude": -118.3965,
+      "business_hours": {
+        "monday": "8:00-17:00",
+        "tuesday": "8:00-17:00",
+        "wednesday": "8:00-17:00",
+        "thursday": "8:00-17:00",
+        "friday": "8:00-17:00"
+      },
+      "services_offered": {
+        "mobile_wash": true,
+        "interior_cleaning": true,
+        "leather_conditioning": true,
+        "headlight_restoration": true
+      }
+    },
+    {
+      "business_name": "Crystal Wash",
+      "description": "Eco-friendly car wash using waterless techniques and biodegradable products",
+      "contact_phone": "555-600-6000",
+      "address": "987 Green Street, Venice, CA",
+      "latitude": 33.9850,
+      "longitude": -118.4695,
+      "business_hours": {
+        "monday": "9:00-18:00",
+        "tuesday": "9:00-18:00",
+        "wednesday": "9:00-18:00",
+        "thursday": "9:00-18:00",
+        "friday": "9:00-18:00",
+        "saturday": "10:00-16:00"
+      },
+      "services_offered": {
+        "waterless_wash": true,
+        "interior_cleaning": true,
+        "eco_detailing": true,
+        "tire_cleaning": true
       }
     }
   ]
-} 
+}

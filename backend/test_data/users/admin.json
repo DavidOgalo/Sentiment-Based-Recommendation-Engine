@@ -1,9 +1,9 @@
 {
   "admin": {
-    "email": "anthony@admin.com",
+    "email": "admin@carwash.com",
     "password": "AdminPass123!",
     "role": "admin",
-    "first_name": "Anthony",
-    "last_name": "Admin"
+    "first_name": "Admin",
+    "last_name": "System"
   }
-} 
+}

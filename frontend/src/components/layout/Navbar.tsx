@@ -68,9 +68,9 @@ const Navbar = () => {
               )}
               {user?.role === 'provider' && (
                 <Link
-                  href="/dashboard"
+                  href="/provider/dashboard"
                   className={`${
-                    router.pathname === '/dashboard'
+                    router.pathname === '/provider/dashboard'
                       ? 'border-indigo-500 text-gray-900'
                       : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                   } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
@@ -90,13 +90,25 @@ const Navbar = () => {
                   Admin Dashboard
                 </Link>
               )}
+              {user?.role === 'customer' && (
+                <Link
+                  href="/customer/profile"
+                  className={`${
+                    router.pathname === '/customer/profile'
+                      ? 'border-indigo-500 text-gray-900'
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                >
+                  Profile
+                </Link>
+              )}
             </div>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             {user ? (
               <div className="flex items-center space-x-4">
                 <span className="text-gray-700">
-                  Welcome, {user.first_name} {user.last_name}
+                  Welcome, {user.first_name}
                 </span>
                 <button
                   onClick={handleLogout}
@@ -212,9 +224,9 @@ const Navbar = () => {
             )}
             {user?.role === 'provider' && (
               <Link
-                href="/dashboard"
+                href="/provider/dashboard"
                 className={`${
-                  router.pathname === '/dashboard'
+                  router.pathname === '/provider/dashboard'
                     ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
                     : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
                 } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
@@ -234,13 +246,25 @@ const Navbar = () => {
                 Admin Dashboard
               </Link>
             )}
+            {user?.role === 'customer' && (
+              <Link
+                href="/customer/profile"
+                className={`${
+                  router.pathname === '/customer/profile'
+                    ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
+                    : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+              >
+                Profile
+              </Link>
+            )}
           </div>
           <div className="pt-4 pb-3 border-t border-gray-200">
             {user ? (
               <div className="flex items-center px-4">
                 <div className="flex-shrink-0">
                   <span className="text-gray-700">
-                    Welcome, {user.first_name} {user.last_name}
+                    Welcome, {user.first_name}
                   </span>
                 </div>
                 <div className="ml-3">
