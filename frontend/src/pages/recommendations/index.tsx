@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { recommendationsApi } from '@/lib/api';
-import { Service } from '@/lib/api';
+import { Service, RecommendationResponse } from '@/lib/api';
 import { Spinner } from '@/components/common/Spinner';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { RecommendationFilters } from '@/components/recommendations/RecommendationFilters';
 import { ServiceCard } from '@/components/services/ServiceCard';
+
+interface RecommendationFilters {
+  min_rating: number;
+  category_id?: number;
+  include_reviewed: boolean;
+  limit: number;
+}
 
 export default function RecommendationsPage() {
   const { user } = useAuth();
@@ -13,12 +20,29 @@ export default function RecommendationsPage() {
   const [trendingServices, setTrendingServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<RecommendationFilters>({
     min_rating: 0,
-    category_id: undefined as number | undefined,
+    category_id: undefined,
     include_reviewed: false,
     limit: 10
   });
+
+  const convertRecommendationToService = (recommendation: RecommendationResponse): Service => {
+    return {
+      service_id: recommendation.service_id,
+      name: recommendation.name,
+      description: recommendation.description,
+      price_range: recommendation.price_range,
+      duration_minutes: 0, // Default value since it's not in RecommendationResponse
+      category_id: recommendation.category_id,
+      category_name: recommendation.category_name,
+      provider_id: recommendation.provider_id,
+      provider_name: recommendation.provider_name,
+      average_rating: recommendation.average_rating,
+      is_active: true, // Default value since it's not in RecommendationResponse
+      created_at: new Date().toISOString() // Default value since it's not in RecommendationResponse
+    };
+  };
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -31,8 +55,8 @@ export default function RecommendationsPage() {
           recommendationsApi.getTrending({ limit: 5, days: 30 })
         ]);
 
-        setPersonalizedServices(personalized);
-        setTrendingServices(trending);
+        setPersonalizedServices(personalized.map(convertRecommendationToService));
+        setTrendingServices(trending.map(convertRecommendationToService));
       } catch (err: any) {
         setError(err.message || 'Failed to load recommendations');
       } finally {
@@ -44,6 +68,10 @@ export default function RecommendationsPage() {
       fetchRecommendations();
     }
   }, [user, filters]);
+
+  const handleFilterChange = (newFilters: RecommendationFilters) => {
+    setFilters(newFilters);
+  };
 
   if (!user) {
     return (
@@ -79,7 +107,7 @@ export default function RecommendationsPage() {
         <p className="text-gray-600">Services tailored to your preferences and past interactions</p>
       </div>
 
-      <RecommendationFilters filters={filters} onFilterChange={setFilters} />
+      <RecommendationFilters filters={filters} onFilterChange={handleFilterChange} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
         {personalizedServices.map((service) => (

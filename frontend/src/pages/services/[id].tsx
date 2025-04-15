@@ -41,27 +41,7 @@ export default function ServiceDetailsPage() {
         setService(serviceData);
         
         const reviewsData = await reviewsApi.getServiceReviews(Number(id));
-        
-        // Fetch user details for each review
-        const reviewsWithUsers = await Promise.all(
-          reviewsData.map(async (review) => {
-            try {
-              const userData = await usersApi.getById(review.user_id);
-              return {
-                ...review,
-                user_first_name: userData.first_name || 'Anonymous'
-              };
-            } catch (error) {
-              console.error('Error fetching user details:', error);
-              return {
-                ...review,
-                user_first_name: 'Anonymous'
-              };
-            }
-          })
-        );
-        
-        setReviews(reviewsWithUsers);
+        setReviews(reviewsData);
       } catch (err) {
         console.error('Error fetching service details:', err);
         setError('Failed to load service details');

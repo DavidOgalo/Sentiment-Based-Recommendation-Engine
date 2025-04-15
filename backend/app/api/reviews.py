@@ -78,7 +78,7 @@ async def update_service_rating(service_id: int, db: AsyncSession):
         raise
 
 # Create a new review
-@router.post("/reviews", response_model=ReviewResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ReviewResponse, status_code=status.HTTP_201_CREATED)
 async def create_review(
     review: ReviewCreate,
     current_user: User = Depends(get_current_active_user),

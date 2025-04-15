@@ -4,7 +4,6 @@ import aiohttp
 import os
 from typing import Dict, Any, List
 import logging
-import time
 
 # Configure logging
 logging.basicConfig(
@@ -67,8 +66,7 @@ class DataPopulator:
                 self.reviews = json.load(f)["reviews"]
             
             logger.info("Successfully loaded all data files")
-            logger.info(f"Loaded: {len(self.categories)} categories, {len(self.providers)} providers, "
-                       f"{len(self.services)} services, {len(self.reviews)} reviews")
+            logger.info(f"Loaded: {len(self.categories)} categories, {len(self.providers)} providers, {len(self.services)} services, {len(self.reviews)} reviews")
             return True
         
         except Exception as e:
@@ -87,8 +85,8 @@ class DataPopulator:
                         if response.status == 200:
                             logger.info("Backend is ready!")
                             return True
-            except Exception as e:
-                logger.debug(f"Backend not ready yet: {str(e)}")
+            except Exception:
+                pass
             
             await asyncio.sleep(1)
         
@@ -108,14 +106,12 @@ class DataPopulator:
                             if "already exists" in error_data.get("detail", ""):
                                 logger.warning(f"Resource already exists: {url}")
                                 return None
-                        
-                        error_text = await response.text()
-                        logger.warning(f"Request failed (attempt {attempt + 1}): {response.status} - {error_text}")
+                        logger.warning(f"Request failed (attempt {attempt + 1}): {response.status} - {await response.text()}")
             except Exception as e:
                 logger.warning(f"Request error (attempt {attempt + 1}): {str(e)}")
             
             if attempt < MAX_RETRIES - 1:
-                await asyncio.sleep(RETRY_DELAY * (attempt + 1))  # Exponential backoff
+                await asyncio.sleep(RETRY_DELAY)
         
         return None
 
@@ -126,8 +122,6 @@ class DataPopulator:
         if response is not None:
             logger.info(f"Registered user: {user_data['email']}")
             return True
-        
-        logger.error(f"Failed to register user: {user_data['email']}")
         return False
 
     async def login(self, email: str, password: str) -> str:
@@ -138,8 +132,6 @@ class DataPopulator:
         if response:
             logger.info(f"Logged in user: {email}")
             return response["access_token"]
-        
-        logger.error(f"Failed to login user: {email}")
         return None
 
     async def create_category(self, category_data: Dict[str, Any], token: str) -> int:
@@ -150,36 +142,16 @@ class DataPopulator:
         if response:
             logger.info(f"Created category: {category_data['name']} (ID: {response['category_id']})")
             return response["category_id"]
-        
-        logger.error(f"Failed to create category: {category_data['name']}")
-        return None
-
-    async def get_existing_provider_id(self, token: str) -> int:
-        """Get the existing provider ID for a user."""
-        url = f"{BASE_URL}/providers/me"
-        headers = {"Authorization": f"Bearer {token}"}
-        response = await self.make_request("GET", url, headers=headers)
-        if response:
-            return response.get("provider_id")
         return None
 
     async def create_provider_profile(self, profile_data: Dict[str, Any], token: str) -> int:
-        """Create or get existing provider profile and return its ID."""
-        # First try to get existing profile
-        provider_id = await self.get_existing_provider_id(token)
-        if provider_id:
-            logger.info(f"Using existing provider profile: {profile_data['business_name']} (ID: {provider_id})")
-            return provider_id
-        
-        # Create new profile if not exists
+        """Create a provider profile and return its ID."""
         url = f"{BASE_URL}/providers/"
         headers = {"Authorization": f"Bearer {token}"}
         response = await self.make_request("POST", url, headers=headers, json=profile_data)
         if response:
             logger.info(f"Created provider profile: {profile_data['business_name']} (ID: {response['provider_id']})")
             return response["provider_id"]
-        
-        logger.error(f"Failed to create provider profile: {profile_data['business_name']}")
         return None
 
     async def verify_provider(self, provider_id: int, token: str) -> bool:
@@ -190,8 +162,6 @@ class DataPopulator:
         if response:
             logger.info(f"Verified provider: {provider_id}")
             return True
-        
-        logger.error(f"Failed to verify provider: {provider_id}")
         return False
 
     async def create_service(self, service_data: Dict[str, Any], token: str) -> int:
@@ -199,21 +169,30 @@ class DataPopulator:
         url = f"{BASE_URL}/services/"
         headers = {"Authorization": f"Bearer {token}"}
         
+        # Get category_id from category_name
+        category_name = service_data.get("category_name")
+        if not category_name:
+            logger.error(f"Missing category_name in service data: {service_data}")
+            return None
+            
+        category_id = self.category_ids.get(category_name)
+        if not category_id:
+            logger.error(f"Category not found: {category_name}")
+            return None
+        
         # Transform service data to match API expectations
         payload = {
             "name": service_data["name"],
             "description": service_data["description"],
             "price_range": service_data["price_range"],
             "duration_minutes": service_data["duration_minutes"],
-            "category_id": self.category_ids[service_data["category_name"]]
+            "category_id": category_id
         }
         
         response = await self.make_request("POST", url, headers=headers, json=payload)
         if response:
-            logger.info(f"Created service: {service_data['name']} (ID: {response['service_id']})")
+            logger.info(f"Created service: {service_data['name']}")
             return response["service_id"]
-        
-        logger.error(f"Failed to create service: {service_data['name']}")
         return None
 
     async def get_all_services(self, token: str) -> List[Dict]:
@@ -221,47 +200,17 @@ class DataPopulator:
         url = f"{BASE_URL}/services/me"
         headers = {"Authorization": f"Bearer {token}"}
         response = await self.make_request("GET", url, headers=headers)
-        if response:
-            logger.info(f"Found {len(response)} existing services")
-            return response
-        
-        logger.warning("No services found for provider")
-        return []
+        return response if response else []
 
     async def create_review(self, review_data: Dict[str, Any], token: str) -> bool:
         """Create a review."""
         url = f"{BASE_URL}/reviews"
         headers = {"Authorization": f"Bearer {token}"}
-        
-        # First verify the service exists
-        service_check_url = f"{BASE_URL}/services/{review_data['service_id']}"
-        async with aiohttp.ClientSession() as session:
-            async with session.get(service_check_url, headers=headers) as response:
-                if response.status != 200:
-                    logger.error(f"Service {review_data['service_id']} not found, skipping review")
-                    return False
-        
-        # Create the review
         response = await self.make_request("POST", url, headers=headers, json=review_data)
         if response:
-            logger.info(f"Created review for service {review_data['service_id']}")
+            logger.info(f"Created review for service: {review_data['service_id']}")
             return True
-        
-        logger.error(f"Failed to create review for service {review_data['service_id']}")
         return False
-
-    async def check_database_health(self):
-        """Verify database connection is healthy."""
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(f"{BASE_URL}/health") as response:
-                    if response.status != 200:
-                        logger.error("Database health check failed")
-                        return False
-                    return True
-        except Exception as e:
-            logger.error(f"Database health check error: {str(e)}")
-            return False
 
     async def populate_data(self):
         """Main method to populate all test data."""
@@ -271,15 +220,14 @@ class DataPopulator:
         if not await self.load_data_files():
             return False
 
-        if not await self.check_database_health():
-            return False
-
         # Register and login admin
         if not await self.register_user(self.admin_data):
+            logger.error("Failed to register admin user")
             return False
         
         admin_token = await self.login(self.admin_data["email"], self.admin_data["password"])
         if not admin_token:
+            logger.error("Failed to login as admin")
             return False
         self.tokens["admin"] = admin_token
 
@@ -325,9 +273,15 @@ class DataPopulator:
             token = self.tokens.get(provider_email)
             
             if token:
-                service_id = await self.create_service(service, token)
-                if service_id:
-                    self.service_ids.append(service_id)
+                # Map category name to ID
+                category_name = service.get("category_name")
+                if category_name and category_name in self.category_ids:
+                    service["category_id"] = self.category_ids[category_name]
+                    service_id = await self.create_service(service, token)
+                    if service_id:
+                        self.service_ids.append(service_id)
+                else:
+                    logger.warning(f"Skipping service {service['name']} - invalid category: {category_name}")
 
         if not self.service_ids:
             logger.error("No services created")
@@ -342,29 +296,26 @@ class DataPopulator:
             if token:
                 self.tokens[customer["email"]] = token
 
-        # Create reviews - only if we have services and customers
+        # Create reviews - distribute among services and customers
         customer_emails = [email for email in self.tokens.keys() if email.endswith("@example.com")]
         if customer_emails and self.service_ids:
-            logger.info(f"Creating reviews for {len(self.service_ids)} services and {len(customer_emails)} customers")
-            
-            for i, review in enumerate(self.reviews):
-                customer_email = customer_emails[i % len(customer_emails)]
-                service_id = self.service_ids[i % len(self.service_ids)]
+            # Create a mapping of service IDs to customer emails to ensure each service gets reviewed by different customers
+            service_customer_map = {}
+            for service_id in self.service_ids:
+                # Assign a unique customer to each service
+                customer_email = customer_emails[len(service_customer_map) % len(customer_emails)]
+                service_customer_map[service_id] = customer_email
+
+            # Create reviews using the mapping
+            for i, (service_id, customer_email) in enumerate(service_customer_map.items()):
                 token = self.tokens.get(customer_email)
-                
-                if token and service_id:
-                    review_data = {
-                        "service_id": service_id,
-                        "rating": review["rating"],
-                        "comment": review["comment"]
-                    }
-                    await self.create_review(review_data, token)
-        else:
-            logger.warning("Skipping review creation - no services or customers available")
+                if token:
+                    # Get a unique review for each service
+                    review = self.reviews[i % len(self.reviews)]
+                    review["service_id"] = service_id
+                    await self.create_review(review, token)
 
         logger.info("Test data population completed successfully!")
-        logger.info(f"Created: {len(self.category_ids)} categories, {len(self.provider_ids)} providers, "
-                   f"{len(self.service_ids)} services, {len(self.reviews)} reviews attempted")
         return True
 
 async def main():
@@ -376,8 +327,9 @@ async def main():
             logger.error("Test data population failed")
             exit(1)
     except Exception as e:
-        logger.error(f"Unexpected error: {str(e)}", exc_info=True)
+        logger.error(f"Unexpected error: {str(e)}")
         exit(1)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    import time
+    asyncio.run(main()) 

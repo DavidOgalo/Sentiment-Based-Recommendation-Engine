@@ -10,31 +10,36 @@ from backend.app.models.models import Service, ServiceProvider, User, ServiceCat
 from backend.app.api.auth import get_current_active_user, get_admin_user
 from sqlalchemy import or_
 from sqlalchemy.types import Float
+import traceback
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+class PriceRange(BaseModel):
+    min: float
+    max: float
+
 # Pydantic Models
 class ServiceBase(BaseModel):
     name: str
     description: Optional[str] = None
-    price_range: dict  # e.g., {"min": 50, "max": 200}
+    price_range: PriceRange
     duration_minutes: int
     category_id: int
 
 class ServiceCreate(BaseModel):
     name: constr(max_length=255)
     description: Optional[str] = None
-    price_range: Dict[str, float]  # {"min": float, "max": float}
+    price_range: PriceRange
     duration_minutes: int
     category_id: int
 
 class ServiceUpdate(ServiceBase):
     name: Optional[str] = None
     description: Optional[str] = None
-    price_range: Optional[dict] = None
+    price_range: Optional[PriceRange] = None
     duration_minutes: Optional[int] = None
     category_id: Optional[int] = None
     is_active: Optional[bool] = None
@@ -43,10 +48,15 @@ class ServiceResponse(BaseModel):
     service_id: int
     name: str
     description: str
-    price_range: dict
+    price_range: PriceRange
+    duration_minutes: int
+    category_id: int
     category_name: str
+    provider_id: int
     provider_name: str
     average_rating: float = 0.0
+    is_active: bool = True
+    created_at: datetime
 
     class Config:
         from_attributes = True
@@ -95,7 +105,8 @@ async def create_service(
             select(ServiceCategory)
             .filter(ServiceCategory.category_id == service.category_id)
         )
-        if not category.scalar_one_or_none():
+        category = category.scalar_one_or_none()
+        if not category:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Service category not found"
@@ -111,7 +122,23 @@ async def create_service(
         await db.commit()
         await db.refresh(new_service)
         
-        return new_service
+        # Create response with required fields
+        response = {
+            'service_id': new_service.service_id,
+            'name': new_service.name,
+            'description': new_service.description,
+            'price_range': new_service.price_range,
+            'duration_minutes': new_service.duration_minutes,
+            'category_id': new_service.category_id,
+            'category_name': category.name,
+            'provider_id': new_service.provider_id,
+            'provider_name': provider.business_name,
+            'average_rating': new_service.average_rating or 0.0,
+            'is_active': new_service.is_active,
+            'created_at': new_service.created_at
+        }
+        
+        return response
     except HTTPException:
         raise
     except Exception as e:
@@ -123,55 +150,75 @@ async def create_service(
 
 @router.get("/", response_model=List[ServiceResponse])
 async def list_services(
-    db: AsyncSession = Depends(get_db),
     search: Optional[str] = None,
     category_id: Optional[int] = None,
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
-    skip: int = 0,
-    limit: int = 100
+    limit: int = 10,
+    offset: int = 0,
+    db: AsyncSession = Depends(get_db)
 ):
+    """List all services with optional filters"""
     try:
-        # Build the base query
-        stmt = select(Service, ServiceCategory.name.label('category_name'), ServiceProvider.business_name.label('provider_name'))
-        stmt = stmt.join(ServiceCategory, Service.category_id == ServiceCategory.category_id)
-        stmt = stmt.join(ServiceProvider, Service.provider_id == ServiceProvider.provider_id)
-        stmt = stmt.where(Service.is_active == True)
+        # Build the query
+        query = select(Service, ServiceCategory.name.label('category_name'), ServiceProvider.business_name.label('provider_name'))
+        query = query.join(ServiceCategory, Service.category_id == ServiceCategory.category_id)
+        query = query.join(ServiceProvider, Service.provider_id == ServiceProvider.provider_id)
+        query = query.filter(Service.is_active == True)
 
         # Apply filters
         if search:
-            stmt = stmt.where(
+            query = query.filter(
                 or_(
                     Service.name.ilike(f"%{search}%"),
-                    ServiceProvider.business_name.ilike(f"%{search}%")
+                    Service.description.ilike(f"%{search}%")
                 )
             )
+        
         if category_id:
-            stmt = stmt.where(Service.category_id == category_id)
-        if min_price is not None:
-            stmt = stmt.where(Service.price_range['min'].astext.cast(Float) >= min_price)
-        if max_price is not None:
-            stmt = stmt.where(Service.price_range['max'].astext.cast(Float) <= max_price)
+            query = query.filter(Service.category_id == category_id)
+        
+        if min_price is not None or max_price is not None:
+            # For JSONB price range, we need to extract the min/max values
+            if min_price is not None:
+                query = query.filter(Service.price_range['min'].astext.cast(Float) >= min_price)
+            if max_price is not None:
+                query = query.filter(Service.price_range['max'].astext.cast(Float) <= max_price)
 
         # Apply pagination
-        stmt = stmt.offset(skip).limit(limit)
-
+        query = query.limit(limit).offset(offset)
+        
         # Execute the query
-        result = await db.execute(stmt)
+        result = await db.execute(query)
         services = result.all()
-
+        
         # Format the response
         formatted_services = []
         for service, category_name, provider_name in services:
-            service_dict = service.__dict__
-            service_dict['category_name'] = category_name
-            service_dict['provider_name'] = provider_name
-            service_dict['average_rating'] = service.average_rating or 0.0
-            formatted_services.append(service_dict)
+            try:
+                service_dict = {
+                    'service_id': service.service_id,
+                    'name': service.name,
+                    'description': service.description,
+                    'price_range': service.price_range,
+                    'duration_minutes': service.duration_minutes,
+                    'category_id': service.category_id,
+                    'category_name': category_name,
+                    'provider_id': service.provider_id,
+                    'provider_name': provider_name,
+                    'average_rating': service.average_rating or 0.0,
+                    'is_active': service.is_active,
+                    'created_at': service.created_at
+                }
+                formatted_services.append(service_dict)
+            except Exception as e:
+                logger.error(f"Error formatting service {service.service_id}: {str(e)}")
+                continue
 
         return formatted_services
     except Exception as e:
         logger.error(f"Error listing services: {str(e)}")
+        logger.error(f"Stack trace: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail="Failed to fetch services")
 
 @router.get("/{service_id}", response_model=ServiceResponse)
@@ -179,27 +226,46 @@ async def get_service(
     service_id: int,
     db: AsyncSession = Depends(get_db)
 ):
-    query = select(Service, ServiceCategory.name.label('category_name'), ServiceProvider.business_name.label('provider_name'))
-    query = query.join(ServiceCategory, Service.category_id == ServiceCategory.category_id)
-    query = query.join(ServiceProvider, Service.provider_id == ServiceProvider.provider_id)
-    query = query.filter(Service.service_id == service_id)
-    
-    result = await db.execute(query)
-    service_data = result.first()
-    
-    if not service_data:
+    try:
+        query = select(Service, ServiceCategory.name.label('category_name'), ServiceProvider.business_name.label('provider_name'))
+        query = query.join(ServiceCategory, Service.category_id == ServiceCategory.category_id)
+        query = query.join(ServiceProvider, Service.provider_id == ServiceProvider.provider_id)
+        query = query.filter(Service.service_id == service_id)
+        
+        result = await db.execute(query)
+        service_data = result.first()
+        
+        if not service_data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Service not found"
+            )
+        
+        service, category_name, provider_name = service_data
+        service_dict = {
+            'service_id': service.service_id,
+            'name': service.name,
+            'description': service.description,
+            'price_range': service.price_range,
+            'duration_minutes': service.duration_minutes,
+            'category_id': service.category_id,
+            'category_name': category_name,
+            'provider_id': service.provider_id,
+            'provider_name': provider_name,
+            'average_rating': service.average_rating or 0.0,
+            'is_active': service.is_active,
+            'created_at': service.created_at
+        }
+        
+        return service_dict
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching service: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Service not found"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch service"
         )
-    
-    service, category_name, provider_name = service_data
-    service_dict = service.__dict__
-    service_dict['category_name'] = category_name
-    service_dict['provider_name'] = provider_name
-    service_dict['average_rating'] = service.average_rating or 0.0
-    
-    return service_dict
 
 @router.put("/{service_id}", response_model=ServiceResponse)
 async def update_service(
@@ -288,10 +354,20 @@ async def get_services_by_provider(
         # Format the response
         formatted_services = []
         for service, category_name, provider_name in services:
-            service_dict = service.__dict__
-            service_dict['category_name'] = category_name
-            service_dict['provider_name'] = provider_name
-            service_dict['average_rating'] = service.average_rating or 0.0
+            service_dict = {
+                'service_id': service.service_id,
+                'name': service.name,
+                'description': service.description,
+                'price_range': service.price_range,
+                'duration_minutes': service.duration_minutes,
+                'category_id': service.category_id,
+                'category_name': category_name,
+                'provider_id': service.provider_id,
+                'provider_name': provider_name,
+                'average_rating': service.average_rating or 0.0,
+                'is_active': service.is_active,
+                'created_at': service.created_at
+            }
             formatted_services.append(service_dict)
 
         return formatted_services
