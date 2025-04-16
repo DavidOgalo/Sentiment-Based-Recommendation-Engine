@@ -84,8 +84,15 @@ export default function ProviderDashboard() {
       if (!provider) return;
       
       const updatedProvider = await providersApi.update(provider.provider_id, {
-        ...formData,
-        services_offered: services.map(s => s.name)
+        business_name: formData.business_name,
+        description: formData.description,
+        contact_phone: formData.contact_phone,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        zip_code: formData.zip_code,
+        website: formData.website,
+        contact_email: formData.contact_email
       });
       
       setProvider(updatedProvider);
@@ -127,6 +134,15 @@ export default function ProviderDashboard() {
         >
           Create Provider Profile
         </button>
+      </div>
+    );
+  }
+
+  if (!provider.is_verified) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <p className="text-yellow-600 mb-4">Your provider account is pending verification. Please wait for admin approval.</p>
+        <p className="text-gray-600 mb-4">You will be able to access your dashboard once your account is verified.</p>
       </div>
     );
   }

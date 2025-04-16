@@ -4,42 +4,69 @@ import { servicesApi, Service, categoriesApi, Category } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Spinner } from '@/components/common/Spinner';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
+import { useRouter } from 'next/router';
+import { Button } from '@/components/common/Button';
 
 const ServicesPage = () => {
   const { user } = useAuth();
+  const router = useRouter();
   const [services, setServices] = useState<Service[]>([]);
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<number | ''>('');
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const [servicesData, categoriesData] = await Promise.all([
-          servicesApi.getAll(),
-          categoriesApi.getAll()
-        ]);
+  const fetchServices = async (pageNum: number) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const limit = 20; // Request 20 services per page
+      const offset = (pageNum - 1) * limit;
+      
+      const [servicesData, categoriesData] = await Promise.all([
+        servicesApi.getAll({ limit, offset }),
+        categoriesApi.getAll()
+      ]);
+      
+      if (!Array.isArray(servicesData)) {
+        throw new Error('Invalid response format from services API');
+      }
+      
+      if (pageNum === 1) {
         setServices(servicesData);
         setFilteredServices(servicesData);
-        setCategories(categoriesData);
-      } catch (err) {
-        setError('Failed to load services');
-        console.error('Error fetching services:', err);
-      } finally {
-        setIsLoading(false);
+      } else {
+        setServices(prev => [...prev, ...servicesData]);
+        setFilteredServices(prev => [...prev, ...servicesData]);
       }
-    };
+      
+      setCategories(categoriesData);
+      setHasMore(servicesData.length === limit);
+    } catch (err) {
+      console.error('Error fetching services:', err);
+      setError('Failed to load services. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchData();
+  useEffect(() => {
+    fetchServices(1);
   }, []);
+
+  const loadMore = () => {
+    if (!isLoading && hasMore) {
+      setPage(prev => prev + 1);
+      fetchServices(page + 1);
+    }
+  };
 
   // Apply filters whenever filter states change
   useEffect(() => {
@@ -69,7 +96,7 @@ const ServicesPage = () => {
     setFilteredServices(filtered);
   }, [services, searchTerm, selectedCategory, priceRange]);
 
-  if (isLoading) {
+  if (isLoading && page === 1) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Spinner size="lg" />
@@ -165,33 +192,47 @@ const ServicesPage = () => {
       {filteredServices.length === 0 ? (
         <p className="text-gray-600 text-center">No services match your filters.</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredServices.map((service) => (
-            <Link
-              key={service.service_id}
-              href={`/services/${service.service_id}`}
-              className="block bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300"
-            >
-              <h2 className="text-xl font-semibold mb-2">{service.name}</h2>
-              <p className="text-gray-600 mb-4">{service.description}</p>
-              
-              <div className="space-y-2">
-                <p className="text-sm text-gray-500">
-                  Category: {service.category_name}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Provider: {service.provider_name}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Price Range: ${service.price_range.min} - ${service.price_range.max}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Rating: {service.average_rating.toFixed(1)}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredServices.map((service) => (
+              <Link
+                key={service.service_id}
+                href={`/services/${service.service_id}`}
+                className="block bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300"
+              >
+                <h2 className="text-xl font-semibold mb-2">{service.name}</h2>
+                <p className="text-gray-600 mb-4">{service.description}</p>
+                
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-500">
+                    Category: {service.category_name}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Provider: {service.provider_name}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Price Range: ${service.price_range.min} - ${service.price_range.max}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Rating: {service.average_rating.toFixed(1)}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+          
+          {hasMore && (
+            <div className="mt-8 text-center">
+              <button
+                onClick={loadMore}
+                disabled={isLoading}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              >
+                {isLoading ? 'Loading...' : 'Load More'}
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

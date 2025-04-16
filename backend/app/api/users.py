@@ -2,9 +2,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.app.models.database import get_db
-from backend.app.models.models import User
-from backend.app.api.auth import get_current_active_user, get_admin_user, verify_password, get_password_hash
+from app.models.database import get_db
+from app.models.models import User
+from app.api.auth import get_current_active_user, get_admin_user, verify_password, get_password_hash
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from datetime import datetime

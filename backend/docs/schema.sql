@@ -56,7 +56,7 @@ CREATE TABLE service_providers (
     sentiment_score NUMERIC(4,3) DEFAULT 0,
     total_reviews INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    is_verified BOOLEAN DEFAULT false
+    is_verified BOOLEAN NOT NULL DEFAULT false
 );
 
 -- Create services table

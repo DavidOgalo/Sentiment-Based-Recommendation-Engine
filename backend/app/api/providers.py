@@ -1,16 +1,16 @@
 # Service provider endpoints
 
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Body, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import List, Optional, Dict
-from pydantic import BaseModel, EmailStr, constr
+from pydantic import BaseModel, EmailStr, constr, Field
 from datetime import datetime
-from backend.app.models.database import get_db
-from backend.app.models.models import ServiceProvider, User, ServiceCategory
-from backend.app.api.auth import get_current_active_user, get_admin_user
-from sqlalchemy import or_
 import logging
+from ..models.database import get_db
+from ..models.models import ServiceProvider, User, ServiceCategory
+from .auth import get_current_active_user, get_admin_user
+from sqlalchemy import or_
 
 router = APIRouter()
 

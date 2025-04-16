@@ -2,7 +2,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, JSON, DateTime, Float, CheckConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
-from backend.app.models.database import Base
+from .database import Base
 
 # Users Table
 class User(Base):

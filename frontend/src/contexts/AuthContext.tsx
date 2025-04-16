@@ -25,6 +25,7 @@ interface AuthContextType {
     first_name: string;
     last_name: string;
   }) => Promise<void>;
+  redirectToLogin: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,7 +42,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (token && storedUser) {
       try {
         authApi.setAuthToken(token);
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser as User);
       } catch (error) {
         console.error('Error parsing stored user:', error);
         localStorage.removeItem('token');
@@ -51,6 +53,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setLoading(false);
   }, []);
+
+  const redirectToLogin = () => {
+    router.push('/auth/login');
+  };
 
   const login = async (email: string, password: string) => {
     try {
@@ -65,10 +71,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Fetch user details using the token
       const userResponse = await authApi.getCurrentUser();
-      setUser(userResponse);
+      setUser(userResponse as User);
       localStorage.setItem('user', JSON.stringify(userResponse));
-      
-      router.push('/');
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -85,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push('/');
     } catch (error) {
       console.error('Logout error:', error);
-      // Even if logout fails, clear local state and redirect to home
+      // Even if logout fails, clear local state and redirect
       setUser(null);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -114,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, register }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, register, redirectToLogin }}>
       {children}
     </AuthContext.Provider>
   );

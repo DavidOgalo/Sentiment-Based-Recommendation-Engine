@@ -8,12 +8,12 @@ from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.app.models.database import get_db
-from backend.app.models.models import User
+from ..models.database import get_db
+from ..models.models import User
 import bcrypt
 
 # Security configuration
-from backend.app.core.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+from ..core.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
 # Password hashing
 pwd_context = CryptContext(
@@ -48,7 +48,7 @@ class UserCreate(BaseModel):
     last_name: Optional[str] = None
 
 class LoginRequest(BaseModel):
-    username: str
+    email: str
     password: str
 
 class UserResponse(BaseModel):
@@ -259,7 +259,7 @@ async def login(
                     detail="Email and password are required",
                 )
         else:
-            email = login_data.username
+            email = login_data.email
             password = login_data.password
         
         # Find user by email

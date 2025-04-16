@@ -5,9 +5,9 @@ from typing import List, Optional, Dict
 from pydantic import BaseModel, Field, constr
 from datetime import datetime
 import logging
-from backend.app.models.database import get_db
-from backend.app.models.models import Service, ServiceProvider, User, ServiceCategory
-from backend.app.api.auth import get_current_active_user, get_admin_user
+from ..models.database import get_db
+from ..models.models import Service, ServiceProvider, User, ServiceCategory
+from ..api.auth import get_current_active_user, get_admin_user
 from sqlalchemy import or_
 from sqlalchemy.types import Float
 import traceback
@@ -226,12 +226,16 @@ async def get_service(
     service_id: int,
     db: AsyncSession = Depends(get_db)
 ):
+    """Get a service by ID"""
     try:
+        # Build the query to get service with category and provider names
         query = select(Service, ServiceCategory.name.label('category_name'), ServiceProvider.business_name.label('provider_name'))
         query = query.join(ServiceCategory, Service.category_id == ServiceCategory.category_id)
         query = query.join(ServiceProvider, Service.provider_id == ServiceProvider.provider_id)
         query = query.filter(Service.service_id == service_id)
+        query = query.filter(Service.is_active == True)
         
+        # Execute the query
         result = await db.execute(query)
         service_data = result.first()
         
@@ -242,7 +246,9 @@ async def get_service(
             )
         
         service, category_name, provider_name = service_data
-        service_dict = {
+        
+        # Format the response
+        response = {
             'service_id': service.service_id,
             'name': service.name,
             'description': service.description,
@@ -257,11 +263,12 @@ async def get_service(
             'created_at': service.created_at
         }
         
-        return service_dict
+        return response
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error fetching service: {str(e)}")
+        logger.error(f"Stack trace: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to fetch service"

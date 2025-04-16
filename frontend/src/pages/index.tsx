@@ -10,7 +10,7 @@ export default function HomePage() {
   useEffect(() => {
     const fetchFeaturedServices = async () => {
       try {
-        const services = await servicesApi.getAll({ limit: 100 });
+        const services = await servicesApi.getAll();
         setFeaturedServices(services || []);
       } catch (err) {
         setError('Failed to load featured services');

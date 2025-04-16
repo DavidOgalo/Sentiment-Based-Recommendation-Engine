@@ -36,10 +36,11 @@ const RegisterForm = () => {
 
     try {
       await register({
-        name: formData.name,
         email: formData.email,
         password: formData.password,
-        is_provider: formData.role === 'provider'
+        role: formData.role as 'customer' | 'provider' | 'admin',
+        first_name: formData.name.split(' ')[0],
+        last_name: formData.name.split(' ').slice(1).join(' ')
       });
       router.push('/');
     } catch (err: any) {

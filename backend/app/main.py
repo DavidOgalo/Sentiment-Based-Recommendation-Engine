@@ -1,7 +1,13 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app.api import auth, users, providers, services, reviews, recommendations, categories
-from backend.app.models.database import get_db, init_db
+from app.api.auth import router as auth_router
+from app.api.users import router as users_router
+from app.api.providers import router as providers_router
+from app.api.services import router as services_router
+from app.api.reviews import router as reviews_router
+from app.api.recommendations import router as recommendations_router
+from app.api.categories import router as categories_router
+from app.models.database import get_db, init_db
 from dotenv import load_dotenv
 import os
 from sqlalchemy import text
@@ -30,13 +36,13 @@ async def health_check():
     return {"status": "healthy"}
 
 # Include API routes
-app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
-app.include_router(users.router, prefix="/users", tags=["Users"])
-app.include_router(providers.router, prefix="/providers", tags=["Service Providers"])
-app.include_router(services.router, prefix="/services", tags=["Services"])
-app.include_router(reviews.router, prefix="/reviews", tags=["Reviews"])
-app.include_router(recommendations.router, prefix="/recommendations", tags=["Recommendations"])
-app.include_router(categories.router, prefix="/categories", tags=["Categories"])
+app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
+app.include_router(users_router, prefix="/users", tags=["Users"])
+app.include_router(providers_router, prefix="/providers", tags=["Service Providers"])
+app.include_router(services_router, prefix="/services", tags=["Services"])
+app.include_router(reviews_router, prefix="/reviews", tags=["Reviews"])
+app.include_router(recommendations_router, prefix="/recommendations", tags=["Recommendations"])
+app.include_router(categories_router, prefix="/categories", tags=["Categories"])
 
 @app.get("/")
 def read_root():
@@ -48,17 +54,25 @@ async def get_routes():
     for route in app.routes:
         routes.append({
             "path": route.path,
-            "methods": route.methods,
-            "name": route.name
+            "name": route.name,
+            "methods": route.methods
         })
     return routes
 
 @app.on_event("startup")
 async def startup_event():
-    """Test database connection on startup"""
+    # Initialize database
+    await init_db()
+    
+    # Test database connection
     try:
-        await init_db()
-        logger.info("Database initialized successfully")
+        db_gen = get_db()
+        db = await anext(db_gen)
+        try:
+            await db.execute(text("SELECT 1"))
+            logger.info("Database connection successful")
+        finally:
+            await db.close()
     except Exception as e:
-        logger.error(f"Error initializing database: {str(e)}")
+        logger.error(f"Database connection failed: {str(e)}")
         raise
