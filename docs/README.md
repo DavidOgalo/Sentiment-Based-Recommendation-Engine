@@ -8,6 +8,9 @@ This project aims to provide a comprehensive solution for service discovery and 
 
 ## System Architecture
 
+<h4>System Design Document</h4>
+<a href="https://drive.google.com/file/d/1VUM2TSlh-hopw2bMB49JvBiZlZI7nklc/view?usp=drive_link">Sentiment Recommendation Engine System Design Document</a>
+<br><br>
 The project follows a microservices architecture with the following components:
 
 1. **Frontend Application** (Next.js)
