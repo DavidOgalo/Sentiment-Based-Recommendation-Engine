@@ -6,7 +6,19 @@ A sentiment-based recommendation algorithm for service provider applications tha
 
 This project aims to provide a comprehensive solution for service discovery and recommendation, combining sentiment analysis of user reviews with personalized recommendations. The system helps users find the best services based on their preferences and helps service providers understand and improve their offerings.
 
+## Tech Stack
+
+- **Frontend**: Next.js
+- **Backend**: FastAPI
+- **Database**: PostgreSQL
+- **ORM**: SQLAlchemy
+- **Authentication**: JWT (JSON Web Tokens)
+- **Containerization**: Docker & Docker Compose
+- **API Documentation**: OpenAPI (Swagger UI)
+
 ## System Architecture
+
+For a comprehensive overview of the system architecture, design rationale, integration points, and deployment reference, see [System Design Document](./system_design.md).
 
 The project follows a microservices architecture with the following components:
 
@@ -40,20 +52,23 @@ The project follows a microservices architecture with the following components:
 ### Running with Docker
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/DavidOgalo/Sentiment-Based-Recommendation-Engine.git
 cd Sentiment-Based-Recommendation-Engine
 ```
 
 2. Start the application:
+
 ```bash
 docker-compose -f docker/docker-compose.yml up -d
 ```
 
 3. Access the applications:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8001
-- API Documentation: http://localhost:8001/docs
+
+- Frontend: <http://localhost:3000>
+- Backend API: <http://localhost:8001>
+- API Documentation: <http://localhost:8001/docs>
 
 ## Detailed Documentation
 
@@ -74,6 +89,7 @@ For detailed information about each component, please refer to:
 ## Key Features
 
 ### User Features
+
 - User registration and authentication
 - Service browsing and search
 - Review submission and management
@@ -81,12 +97,14 @@ For detailed information about each component, please refer to:
 - Provider verification system
 
 ### Provider Features
+
 - Service management
 - Review monitoring
 - Performance analytics
 - Verification status management
 
 ### Admin Features
+
 - User management
 - Provider verification
 - System monitoring
@@ -114,33 +132,41 @@ For detailed information about each component, please refer to:
 ## System Architecture Overview
 
 ### 1. Core Backend Services
+
 Python-based microservices handling specific business logic.
 
 #### User Management Service
+
 - Handles user registration, profile management
 - Role-based access (Customer, Service Provider, Super-Admin)
 - User preferences and settings
 
 #### Review Service
+
 - Processes and stores customer reviews and ratings
 - Triggers sentiment analysis pipeline
 - Manages review lifecycle (submission, moderation if needed, updates)
 
 #### Service Provider Management
+
 - Service provider profiles and service offerings
 - Analytics dashboard data for service providers
 - Performance metrics and reporting
 
 ### 2. ML Pipeline
+
 Sentiment analysis and recommendation engine.
 
 #### Sentiment Analysis Module
+
 Implementation Details
+
 - Initial Approach: VADER for fast, rule-based sentiment analysis
 - Advanced Implementation: Fine-tuned BERT model specific to service reviews
 - Hybrid Approach: Combining lexicon-based and deep learning methods for better accuracy
 
 The sentiment pipeline will:
+
 1. Preprocess text (remove stopwords, normalize, handle negations)
 2. Extract linguistic features (adjectives, adverbs with high sentiment load)
 3. Apply contextual analysis (service-specific terminology)
@@ -148,12 +174,15 @@ The sentiment pipeline will:
 5. Store results in the database
 
 #### Recommendation Engine Module
+
 A hybrid recommendation system that combines:
+
 1. Content-based filtering: Matching user preferences with service attributes
 2. Collaborative filtering: Finding patterns among similar users' preferences
 3. Sentiment-weighted ranking: Prioritizing services with positive sentiment scores
 
 Implementation Details
+
 - Feature vector generation for each service provider including:
   - Average sentiment score (weighted by recency)
   - Categories and specializations
@@ -164,7 +193,9 @@ Implementation Details
 - Real-time score adjustment based on new reviews
 
 ### 3. Data Layer
+
 PostgreSQL database with a schema that supports:
+
 - Detailed sentiment analysis storage
 - Geographic querying for location-based recommendations
 - Service categorization for better matching
@@ -172,7 +203,9 @@ PostgreSQL database with a schema that supports:
 - Interaction tracking for recommendation improvement
 
 ### 4. API Gateway
+
 Comprehensive API layer using FastAPI with:
+
 - RESTful endpoints
 - OpenAPI documentation
 - Rate limiting
@@ -180,7 +213,9 @@ Comprehensive API layer using FastAPI with:
 - Error handling
 
 ### 5. Authentication and Authorization
+
 OAuth2 with JWT (JSON Web Tokens) implementation:
+
 - User registration and login
 - Password hashing with bcrypt
 - JWT token generation and validation
@@ -189,23 +224,18 @@ OAuth2 with JWT (JSON Web Tokens) implementation:
 
 ## Implementation Strategy
 
-### Phase 1: MVP (Core Features) - Version 0.1 ✓
+### Version 1: MVP (Core Features) ✓
+
 1. User management, authentication, and role-based access
 2. Basic service provider listings and reviews
-3. Simple sentiment analysis using VADER
-4. Basic recommendation algorithm
+3. Enhanced sentiment analysis with VADER and fine-tuned BERT
+4. Hybrid recommendation algorithm system
 
-### Phase 2: Advanced Features - Future Updates/Version
-1. Enhanced sentiment analysis with fine-tuned BERT
-2. Hybrid recommendation system
-3. Service booking functionality
-4. Provider analytics dashboard
+### Version 2: Optimization and Scaling
 
-### Phase 3: Optimization and Scaling - Future Updates/Version
 1. Performance improvements and caching
 2. Advanced analytics and reporting
-3. Mobile app support via enhanced API
-4. Multi-language support
+3. Multi-language support
 
 ## Contributing
 
@@ -217,30 +247,4 @@ OAuth2 with JWT (JSON Web Tokens) implementation:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Application Features
-- User Authentication and Authorization (JWT-based)
-- Service Provider Management
-- Service Categories and Services Management
-- Review System with Sentiment Analysis
-- Personalized Service Recommendations
-- User Preferences Management
-- Booking System
-- Provider Verification System
-
-## Tech Stack
-
-- **Backend**: FastAPI (Python)
-- **Database**: PostgreSQL
-- **ORM**: SQLAlchemy
-- **Authentication**: JWT (JSON Web Tokens)
-- **Containerization**: Docker & Docker Compose
-- **API Documentation**: OpenAPI (Swagger UI)
-
-## Prerequisites
-
-- Docker and Docker Compose
-- Python 3.8+
-- PostgreSQL 15+
-
+MIT License - See the [LICENSE](../LICENSE) file for details.

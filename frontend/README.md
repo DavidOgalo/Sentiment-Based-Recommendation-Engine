@@ -42,17 +42,20 @@ frontend/
 ## Getting Started
 
 1. Install dependencies:
+
 ```bash
 npm install
 ```
 
 2. Set up environment variables:
+
 ```bash
 cp .env.example .env
 # Edit .env with your configuration
 ```
 
 3. Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -76,6 +79,7 @@ npm run dev
 ## Deployment
 
 The frontend can be deployed to any platform that supports Next.js applications, such as:
+
 - Vercel
 - Netlify
 - AWS Amplify
@@ -94,4 +98,4 @@ The frontend communicates with the backend through RESTful APIs. All API calls a
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+MIT License - See the [LICENSE](../LICENSE) file for details.
