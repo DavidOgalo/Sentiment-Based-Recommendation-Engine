@@ -45,15 +45,15 @@ This engine combines rule-based and deep learning sentiment analysis to rank ser
 
 ### 5.1 Sentiment Analysis
 
-- **Algorithm**: Hybrid VADER (rule-based) and BERT (fine-tuned) with weighted averaging.
+- **Algorithm**: Hybrid VADER (rule-based) and BERT (fine-tuned) with weighted averaging, using supervised learning on labeled review data.
 - **Complexity**: O(n) for VADER, O(n * d) for BERT (n = tokens, d = embedding dim).
-- **Implementation**: Preprocesses text, extracts features, and scores from -1 to 1.
+- **Implementation**: Preprocesses text, extracts features, and scores from -1 to 1. Evaluated with F1 score for imbalanced classes; addressed imbalance via SMOTE oversampling and data augmentation.
 
 ### 5.2 Recommendation Engine
 
 - **Algorithm**: Hybrid filtering with SVD for dimensionality reduction and cosine similarity.
 - **Complexity**: O(n * m) for matrix factorization (n = users, m = services).
-- **Implementation**: Combines user preferences, service attributes, and sentiment weights.
+- **Implementation**: Combines user preferences, service attributes, and sentiment weights. Evaluated with precision@K and NDCG metrics.
 
 ### 5.3 Authentication
 

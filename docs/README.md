@@ -15,6 +15,7 @@ This project aims to provide a comprehensive solution for service discovery and 
 - **Authentication**: JWT (JSON Web Tokens)
 - **Containerization**: Docker & Docker Compose
 - **API Documentation**: OpenAPI (Swagger UI)
+- **NLP/ML**: Hugging Face Transformers (for BERT), VADER Sentiment, TensorFlow, Scikit-learn (for SMOTE and evaluation metrics)
 
 ## System Architecture
 
@@ -161,25 +162,26 @@ Sentiment analysis and recommendation engine.
 
 Implementation Details
 
-- Initial Approach: VADER for fast, rule-based sentiment analysis
-- Advanced Implementation: Fine-tuned BERT model specific to service reviews
-- Hybrid Approach: Combining lexicon-based and deep learning methods for better accuracy
+- **Initial Approach**: VADER for fast, rule-based sentiment analysis on lexical features (e.g., word polarity, intensity modifiers).
+- **Advanced Implementation**: Fine-tuned BERT model (using Hugging Face Transformers) specific to service reviews, employing supervised learning on labeled review data to capture contextual nuances (e.g., sarcasm, domain-specific sentiment).
+- **Hybrid Approach**: Combining lexicon-based (VADER) and deep learning (BERT) methods for improved accuracy, with weighted averaging of scores to balance speed and precision.
+- **Training and Evaluation**: Utilized supervised learning with a balanced dataset; addressed class imbalance through SMOTE oversampling and data augmentation (e.g., synonym replacement, back-translation). Evaluated using F1 score as the primary metric to handle imbalanced classes, achieving high precision/recall trade-off.
 
 The sentiment pipeline will:
 
-1. Preprocess text (remove stopwords, normalize, handle negations)
-2. Extract linguistic features (adjectives, adverbs with high sentiment load)
-3. Apply contextual analysis (service-specific terminology)
-4. Generate compound sentiment scores (-1 to 1)
-5. Store results in the database
+1. Preprocess text (remove stopwords, normalize, handle negations, tokenization via Hugging Face).
+2. Extract linguistic features (adjectives, adverbs with high sentiment load).
+3. Apply contextual analysis (service-specific terminology, embeddings from BERT).
+4. Generate compound sentiment scores (-1 to 1).
+5. Store results in the database.
 
 #### Recommendation Engine Module
 
 A hybrid recommendation system that combines:
 
-1. Content-based filtering: Matching user preferences with service attributes
-2. Collaborative filtering: Finding patterns among similar users' preferences
-3. Sentiment-weighted ranking: Prioritizing services with positive sentiment scores
+1. Content-based filtering: Matching user preferences with service attributes.
+2. Collaborative filtering: Finding patterns among similar users' preferences.
+3. Sentiment-weighted ranking: Prioritizing services with positive sentiment scores.
 
 Implementation Details
 
@@ -189,8 +191,8 @@ Implementation Details
   - Geographic proximity
   - Response time and availability
 - Matrix factorization using SVD for dimensionality reduction
-- User similarity computation using cosine similarity
 - Real-time score adjustment based on new reviews
+- **Evaluation**: Assessed recommendation quality using metrics like precision@K, with A/B testing in development to validate personalization effectiveness.
 
 ### 3. Data Layer
 
@@ -233,9 +235,10 @@ OAuth2 with JWT (JSON Web Tokens) implementation:
 
 ### Version 2: Optimization and Scaling
 
-1. Performance improvements and caching
-2. Advanced analytics and reporting
-3. Multi-language support
+1. Advanced Recommendation model
+2. Performance improvements and caching
+3. Advanced analytics and reporting
+4. Multi-language support
 
 ## Contributing
 
